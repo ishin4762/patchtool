@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([bsdiff], [patchgen], [0.1])
+AC_INIT([patchtool], [0.1])
 LT_INIT
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([1.9])
@@ -28,7 +28,8 @@ AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset])
 
 AC_CONFIG_FILES([Makefile
-                 bsdiff/Makefile
-                 patchgen/Makefile
-                 patchgen/patchfile/Makefile])
+                 lib/Makefile
+                 lib/bsdiff/Makefile
+                 lib/patchfile/Makefile
+                 patchgen/Makefile])
 AC_OUTPUT

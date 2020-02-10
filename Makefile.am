@@ -1,1 +1,1 @@
-SUBDIRS = bsdiff patchgen
+SUBDIRS = lib patchgen

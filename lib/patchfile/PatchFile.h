@@ -6,7 +6,7 @@
 #include "FileList.h"
 
 extern "C" {
-#include "bsdiff/bsdiff.h"
+#include "lib/bsdiff/bsdiff.h"
 }
 
 class PatchFile {
