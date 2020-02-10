@@ -32,6 +32,3 @@ AC_CONFIG_FILES([Makefile
                  patchgen/Makefile
                  patchgen/patchfile/Makefile])
 AC_OUTPUT
-
-
-

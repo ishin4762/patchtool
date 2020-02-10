@@ -1,4 +1,9 @@
 // Copyright (C) 2020 ISHIN.
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <fcntl.h>
 #include <filesystem>
 #include <iostream>
 #include "PatchFile.h"
@@ -45,6 +50,7 @@ void PatchFile::search(
         fs::path path = entry.path();
         fs::path basePath(fileList->rootDir);
         file.name = fs::relative(path, basePath).generic_string();
+        file.fullFilename = entry.path();
         file.isDirectory = entry.status().type() == fs::file_type::directory;
         fileList->files.push_back(file);
     }
@@ -117,6 +123,7 @@ FileList PatchFile::calcDiff(
                     // new file is added.
                     File fileNew = *newItr;
                     fileNew.isAdd = true;
+                    fileNew.newFilename = fileNew.fullFilename;
                     fileList.files.push_back(fileOld);
                     fileList.files.push_back(fileNew);
 
@@ -150,6 +157,8 @@ FileList PatchFile::calcDiff(
                         // two files are different.
                         File fileNew = *newItr;
                         fileNew.isModify = true;
+                        fileNew.newFilename = fileNew.fullFilename;
+                        fileNew.oldFilename = oldItr->fullFilename;
                         fileList.files.push_back(fileNew);
 
                         oldItr++;
@@ -167,6 +176,7 @@ FileList PatchFile::calcDiff(
             // new file/directory is added.
             File fileNew = *newItr;
             fileNew.isAdd = true;
+            fileNew.newFilename = fileNew.fullFilename;
             fileList.files.push_back(fileNew);
             newItr++;
         }
@@ -177,6 +187,7 @@ FileList PatchFile::calcDiff(
         for (; newItr != newList.files.end(); newItr++) {
             File fileNew = *newItr;
             fileNew.isAdd = true;
+            fileNew.newFilename = fileNew.fullFilename;
             fileList.files.push_back(fileNew);
         }
     } else if (oldItr != oldList.files.end() && newItr == newList.files.end()) {
@@ -216,7 +227,7 @@ bool PatchFile::isFileEqual(const File& file1, const File& file2) {
     do {
         readCount1 = fread(buf1, sizeof(char), BUFFER_SIZE, fp1);
         readCount2 = fread(buf2, sizeof(char), BUFFER_SIZE, fp2);
-        isContinue = (readCount1 == 1024) && (readCount2 == 1024);
+        isContinue = (readCount1 == BUFFER_SIZE) && (readCount2 == BUFFER_SIZE);
         ptr1 = buf1;
         ptr2 = buf2;
         while (readCount1-- > 0) {
@@ -237,28 +248,19 @@ bool PatchFile::isFileEqual(const File& file1, const File& file2) {
     return isEqual;
 }
 
-void PatchFile::writeFileInfo(FILE* fp, const FileList& fileList) {
-    uint32_t numEntries = fileList.files.size();
-    fwrite(&numEntries, sizeof(uint32_t), 1, fp);
+void PatchFile::writeFile(FILE* fp, FileList* fileList) {
 
-    for (const auto& entry : fileList.files) {
-        // filename
-        uint16_t length = entry.name.length();
-        fwrite(&length, sizeof(uint16_t), 1, fp);
-        fwrite(entry.name.c_str(), sizeof(char), length, fp);
+    // 0) write signature.
+    fwrite(signature, sizeof(char), sizeof(signature), fp);
 
-        // flags
-        uint16_t flags = encodeFlags(entry);
-        fwrite(&flags, sizeof(uint16_t), 1, fp);
+    // 1) write headers. (filePos & fileSize must be zero.)
+    writeFileInfo(fp, *fileList);
 
-        // filePos (rewrite after putting data.)
-        uint64_t filePos = 0;
-        fwrite(&filePos, sizeof(uint64_t), 1, fp);
+    // 2) write data.
+    writeFileData(fp, fileList);
 
-        // fileSize (rewrite after putting data.)
-        uint64_t fileSize = 0;
-        fwrite(&fileSize, sizeof(uint64_t), 1, fp);
-    }
+    // 3) re-write headers. (filePos & fileSize will be non-zero.)
+    writeFileInfo(fp, *fileList);
 }
 
 uint16_t PatchFile::encodeFlags(const File& file) {
@@ -274,4 +276,114 @@ void PatchFile::decodeFlags(uint16_t flags, File* file) {
     file->isAdd = (flags & 0x02) >> 1;
     file->isRemove = (flags & 0x04) >> 2;
     file->isModify = (flags & 0x08) >> 3;
+}
+
+void PatchFile::writeFileInfo(FILE* fp, const FileList& fileList) {
+    // move pointer to head.
+    fseek(fp, sizeof(signature), SEEK_SET);
+
+    uint32_t numEntries = fileList.files.size();
+    fwrite(&numEntries, sizeof(uint32_t), 1, fp);
+
+    for (const auto& entry : fileList.files) {
+        // filename
+        uint16_t length = entry.name.length();
+        fwrite(&length, sizeof(uint16_t), 1, fp);
+        fwrite(entry.name.c_str(), sizeof(char), length, fp);
+
+        // flags
+        uint16_t flags = encodeFlags(entry);
+        fwrite(&flags, sizeof(uint16_t), 1, fp);
+
+        // filePos
+        uint64_t filePos = entry.filePos;
+        fwrite(&filePos, sizeof(uint64_t), 1, fp);
+
+        // fileSize
+        uint64_t fileSize = entry.fileSize;
+        fwrite(&fileSize, sizeof(uint64_t), 1, fp);
+
+        // checksum
+        uint32_t checkSum = entry.checkSum;
+        fwrite(&checkSum, sizeof(uint32_t), 1, fp);
+
+    }
+}
+
+void PatchFile::writeFileData(FILE* fp, FileList* fileList) {
+    for (auto& entry : fileList->files) {
+        if (entry.isDirectory || entry.isRemove) {
+            continue;
+        }
+
+        if (entry.isAdd) {
+            entry.filePos = ftello(fp);
+            addFile(entry);
+            entry.fileSize = ftello(fp) - entry.filePos;
+        } else if (entry.isModify) {
+            entry.filePos = ftello(fp);
+            modifyFile(&entry);
+            entry.fileSize = ftello(fp) - entry.filePos;
+        }
+    }
+}
+
+void PatchFile::addFile(const File& file) {
+    FILE *newFp = fopen(file.newFilename.c_str(), "rb");
+    if (newFp == nullptr) {
+        return;
+    }
+
+    const int BUFFER_SIZE = 1024;
+    char buf[BUFFER_SIZE];
+    int readCount;
+    do {
+        readCount = fread(buf, sizeof(char), BUFFER_SIZE, newFp);
+        stream.write(&stream, buf, readCount);
+    } while (readCount == BUFFER_SIZE);
+
+    fclose(newFp);
+}
+
+void PatchFile::modifyFile(File* file) {
+    // open old file.
+    int oldFd = open(file->oldFilename.c_str(), O_RDONLY, 0);
+    if (oldFd < 0) {
+        return;
+    }
+
+    // open new file.
+    int newFd = open(file->newFilename.c_str(), O_RDONLY, 0);
+    if (newFd < 0) {
+        close(oldFd);
+        return;
+    }
+
+    // read old file.
+    off_t oldFileSize = lseek(oldFd, 0, SEEK_END);
+    lseek(oldFd, 0, SEEK_SET);
+    uint8_t* bufOld = new uint8_t[oldFileSize+1];
+    read(oldFd, bufOld, oldFileSize);
+    close(oldFd);
+
+    // calc checksum.
+    uint32_t checkSum = 0;
+    uint8_t* ptrOld = bufOld;
+    for (; ptrOld - bufOld < oldFileSize; ptrOld++) {
+        checkSum += *ptrOld;
+    }
+    file->checkSum = checkSum;
+
+    // read new file.
+    off_t newFileSize = lseek(newFd, 0, SEEK_END);
+    lseek(newFd, 0, SEEK_SET);
+    uint8_t* bufNew = new uint8_t[newFileSize+1];
+    read(newFd, bufNew, newFileSize);
+    close(newFd);
+
+    // call bsdiff.
+    bsdiff(bufOld, oldFileSize, bufNew, newFileSize, &stream);
+
+    delete[] bufOld;
+    delete[] bufNew;
 }

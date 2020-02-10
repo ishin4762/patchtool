@@ -5,10 +5,6 @@
 #include <vector>
 #include "PatchFile/PatchFileFactory.h"
 
-extern "C" {
-    #include "bsdiff/bsdiff.h"
-}
-
 /**
  *  show usage.
  */
@@ -79,6 +75,27 @@ int main(int argc, char* argv[]) {
         && executable_param != "mac"
         && !compress_param.empty()) {
         show_usage();
+        return 1;
+    }
+
+    // not implemented error.
+    // TODO(ishin): remove these validations after implements.
+    if (compress_param == "bzip2") {
+        std::cout << "sorry, bzip2 compress mode is not implemented."
+            << std::endl;
+        return 1;
+    } else if (compress_param == "zlib") {
+        std::cout << "sorry, zlib compress mode is not implemented."
+            << std::endl;
+        return 1;
+    }
+    if (executable_param == "win") {
+        std::cout << "sorry, win executable mode is not implemented."
+            << std::endl;
+        return 1;
+    } else if (executable_param == "mac") {
+        std::cout << "sorry, mac executable mode is not implemented."
+            << std::endl;
         return 1;
     }
 

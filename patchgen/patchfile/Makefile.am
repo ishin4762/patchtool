@@ -7,4 +7,3 @@ PlainPatchFile.cc \
 PatchFile.cc
 
 libpatchfile_la_CXXFLAGS = -std=c++17
-

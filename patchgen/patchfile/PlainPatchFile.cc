@@ -30,6 +30,10 @@ PlainPatchFile::PlainPatchFile(
     stream.malloc = malloc;
     stream.free = free;
     stream.write = plain_write;
+
+    // copy signature.
+    const char SIGNATURE[16] = "PLAIN ver.1.00";
+    memcpy(signature, SIGNATURE, sizeof(signature));
 }
 
 bool PlainPatchFile::encode(
@@ -40,13 +44,14 @@ bool PlainPatchFile::encode(
     // search directory diff.
     FileList diffList = searchDiff(oldDir, newDir);
 
-    // write file info.
+    // write file.
     file = fopen(output.c_str(), "wb");
     if (file == nullptr) {
         std::cerr << "cannot create " << output << std::endl;
         return false;
     }
-    writeFileInfo(file, diffList);
+    stream.opaque = file;
+    writeFile(file, &diffList);
 
     // flush.
     fclose(file);

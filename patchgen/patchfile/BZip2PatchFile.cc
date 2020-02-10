@@ -25,17 +25,22 @@ BZip2PatchFile::BZip2PatchFile(
     stream.malloc = malloc;
     stream.free = free;
     stream.write = bz2_write;
+
+    // copy signature.
+    const char SIGNATURE[16] = "BZIP2 ver.1.00";
+    memcpy(signature, SIGNATURE, sizeof(signature));
 }
 
 bool BZip2PatchFile::encode(
     const std::string& oldDir,
     const std::string& newDir,
     const std::string& output) {
+    // not implement.
     return true;
 }
 
 
 bool BZip2PatchFile::decode() {
-    // Do nothing.
+    // not implement.
     return true;
 }

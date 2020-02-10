@@ -5,7 +5,9 @@
 #include <string>
 #include "FileList.h"
 
+extern "C" {
 #include "bsdiff/bsdiff.h"
+}
 
 class PatchFile {
  public:
@@ -19,9 +21,10 @@ class PatchFile {
  protected:
     std::string executableOS;
     bsdiff_stream stream;
+    char signature[16] = { 0 };
 
     FileList searchDiff(const std::string& oldDir, const std::string& newDir);
-    void writeFileInfo(FILE* fp, const FileList& fileList);
+    void writeFile(FILE* fp, FileList* fileList);
 
  private:
     void search(FileList* fileList, const std::string& path);
@@ -31,6 +34,10 @@ class PatchFile {
     bool isFileEqual(const File& file1, const File& file2);
     uint16_t encodeFlags(const File& file);
     void decodeFlags(uint16_t flags, File* file);
+    void writeFileInfo(FILE* fp, const FileList& fileList);
+    void writeFileData(FILE* fp, FileList* fileList);
+    void addFile(const File& file);
+    void modifyFile(File* file);
 };
 
 #endif  // PATCHTOOL_PATCHGEN_PATCHFILE_PATCHFILE_H_
