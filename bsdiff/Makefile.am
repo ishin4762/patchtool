@@ -1,11 +1,7 @@
-bin_PROGRAMS = bsdiff bspatch
+lib_LTLIBRARIES = libbsdiff.la libbspatch.la
 
-bsdiff_SOURCES = bsdiff.c
+libbsdiff_la_SOURCES = bsdiff.c
+# libbsdiff_la_LIBADD = 
 
-bspatch_SOURCES = bspatch.c
-
-bsdiff_CFLAGS = -DBSDIFF_EXECUTABLE
-bspatch_CFLAGS = -DBSPATCH_EXECUTABLE
-
-EXTRA_DIST = bsdiff.h bspatch.h
-
+libbspatch_la_SOURCES = bspatch.c
+# libbspatch_la_LIBADD = 

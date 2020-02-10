@@ -2,13 +2,14 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([bsdiff], [0.1])
-AC_CONFIG_SRCDIR([bsdiff.c])
+AC_INIT([bsdiff], [patchgen], [0.1])
+LT_INIT
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE([1.9])
 
 # Checks for programs.
 AC_PROG_CC
+AC_PROG_CXX
 
 # Checks for libraries.
 # FIXME: Replace `main' with a function in `-lbz2':
@@ -26,5 +27,11 @@ AC_TYPE_UINT8_T
 AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset])
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile
+                 bsdiff/Makefile
+                 patchgen/Makefile
+                 patchgen/patchfile/Makefile])
 AC_OUTPUT
+
+
+
