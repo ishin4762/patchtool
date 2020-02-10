@@ -1,5 +1,6 @@
-.deps/*
-.libs/*
+**/.deps/*
+**/.libs/*
+*.la
 *.lo
 *.o
 .dirstamp

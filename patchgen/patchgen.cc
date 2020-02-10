@@ -1,9 +1,12 @@
 // Copyright(C) 2020 ISHIN.
 #include <getopt.h>
+#include <filesystem>
 #include <iostream>
 #include <string>
 #include <vector>
 #include "PatchFile/PatchFileFactory.h"
+
+namespace fs = std::filesystem;
 
 /**
  *  show usage.
@@ -95,6 +98,21 @@ int main(int argc, char* argv[]) {
         return 1;
     } else if (executable_param == "mac") {
         std::cout << "sorry, mac executable mode is not implemented."
+            << std::endl;
+        return 1;
+    }
+
+    // check if targets are directories.
+    fs::path oldDir(nonopt_args[0]);
+    fs::path newDir(nonopt_args[1]);
+    if (!fs::exists(oldDir) || !fs::is_directory(oldDir)) {
+        std::cout << nonopt_args[0] << " is not directory." << std::endl;
+        return 1;
+    } else if (!fs::exists(newDir) || !fs::is_directory(newDir)) {
+        std::cout << nonopt_args[1] << " is not directory." << std::endl;
+        return 1;
+    } else if (fs::canonical(oldDir) == fs::canonical(newDir)) {
+        std::cout << "old-dir and new-dir must be different directories."
             << std::endl;
         return 1;
     }
