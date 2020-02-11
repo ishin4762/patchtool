@@ -2,7 +2,7 @@ bin_PROGRAMS = patchapply
 
 patchapply_SOURCES = patchapply.cc
 
-patchapply_CXXFLAGS = -I../lib/patchfile -std=c++17
+patchapply_CXXFLAGS = -I../lib/patchfile -std=c++17 -Wl,-Bstatic -lbz2
 
 patchapply_LDADD = \
 ../lib/patchfile/libpatchfile.la \

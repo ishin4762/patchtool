@@ -2,7 +2,7 @@ bin_PROGRAMS = patchgen
 
 patchgen_SOURCES = patchgen.cc
 
-patchgen_CXXFLAGS = -I../lib/patchfile -std=c++17
+patchgen_CXXFLAGS = -I../lib/patchfile -std=c++17 -Wl,-Bstatic -lbz2
 
 patchgen_LDADD = \
 ../lib/patchfile/libpatchfile.la \
