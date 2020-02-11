@@ -1,4 +1,7 @@
 # patchtool
+
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 汎用差分パッチツール。以下の事ができます
 
 * ディレクトリ単位での差分抽出
@@ -36,7 +39,6 @@ CMD> patchapply.exe <適用先DIR> <パッチファイル>
 
 ## ビルドの方法
 ```
-$ ./autogen.sh
 $ ./configure
 $ make
 ```

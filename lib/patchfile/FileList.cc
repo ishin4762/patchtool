@@ -51,15 +51,16 @@ void FileList::search(const std::string& path) {
     for (const auto& entry : fs::directory_iterator(path)) {
         if (entry.is_directory()) {
             search(entry.path());
+        } else if (entry.is_regular_file()) {
+            File file;
+            fs::path path = entry.path();
+            fs::path basePath(rootDir);
+            file.name = fs::relative(path, basePath).generic_string();
+            file.fullFilename = entry.path();
+            file.isDirectory =
+                entry.status().type() == fs::file_type::directory;
+            files.push_back(file);
         }
-
-        File file;
-        fs::path path = entry.path();
-        fs::path basePath(rootDir);
-        file.name = fs::relative(path, basePath).generic_string();
-        file.fullFilename = entry.path();
-        file.isDirectory = entry.status().type() == fs::file_type::directory;
-        files.push_back(file);
     }
 }
 
