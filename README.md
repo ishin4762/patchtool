@@ -39,6 +39,7 @@ CMD> patchapply.exe <適用先DIR> <パッチファイル>
 
 ## ビルドの方法
 ```
+$ ./autogen.sh
 $ ./configure
 $ make
 ```
