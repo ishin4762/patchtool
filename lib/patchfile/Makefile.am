@@ -7,4 +7,4 @@ PlainPatchFile.cc \
 PatchFile.cc \
 FileList.cc
 
-libpatchfile_la_CXXFLAGS = -std=c++17
+libpatchfile_la_CXXFLAGS = -std=c++17 -lbz2
