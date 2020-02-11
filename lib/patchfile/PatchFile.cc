@@ -264,7 +264,7 @@ bool PatchFile::readFileInfo(FILE* fp, FileList* fileList) {
 
 bool PatchFile::validateFiles(const FileList& fileList) {
     for (const auto& entry : fileList.files) {
-        fs::path filePath;
+        std::string filePath;
         if (entry.isRemove || entry.isModify) {
             // check if file or directory exists.
             filePath = fileList.rootDir + "/" + entry.name;
@@ -318,7 +318,7 @@ bool PatchFile::applyFiles(FILE* fp, const FileList& fileList) {
     for (auto& entry : fileList.files) {
         if (entry.isDirectory) {
             if (entry.isAdd) {
-                fs::path filePath = fileList.rootDir + "/" + entry.name;
+                std::string filePath = fileList.rootDir + "/" + entry.name;
                 try {
                     fs::create_directory(filePath);
                 } catch (fs::filesystem_error& ex) {
@@ -326,7 +326,7 @@ bool PatchFile::applyFiles(FILE* fp, const FileList& fileList) {
                     return false;
                 }
             } else if (entry.isRemove) {
-                fs::path filePath = fileList.rootDir + "/" + entry.name;
+                std::string filePath = fileList.rootDir + "/" + entry.name;
                 try {
                     fs::remove_all(filePath);
                 } catch (fs::filesystem_error& ex) {
@@ -342,7 +342,7 @@ bool PatchFile::applyFiles(FILE* fp, const FileList& fileList) {
                 generateFile(filePath, entry);
                 closeReader();
             } else if (entry.isRemove) {
-                fs::path filePath = fileList.rootDir + "/" + entry.name;
+                std::string filePath = fileList.rootDir + "/" + entry.name;
                 try {
                     fs::remove(filePath);
                 } catch (fs::filesystem_error& ex) {
