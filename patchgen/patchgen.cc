@@ -41,7 +41,8 @@ int main(int argc, char* argv[]) {
     };
 
     // parse arguments.
-    while ((opt = getopt_long(argc, argv, "c:", longopts, &long_index)) != -1) {
+    while ((opt = getopt_long(argc, argv,
+        "c:e::", longopts, &long_index)) != -1) {
         switch (opt) {
         case 'c':
             copt_available = true;
@@ -76,18 +77,14 @@ int main(int argc, char* argv[]) {
         return 1;
     } else if (executable_param != "win"
         && executable_param != "mac"
-        && !compress_param.empty()) {
+        && !executable_param.empty()) {
         show_usage();
         return 1;
     }
 
     // not implemented error.
     // TODO(ishin): remove these validations after implements.
-    if (compress_param == "bzip2") {
-        std::cout << "sorry, bzip2 compress mode is not implemented."
-            << std::endl;
-        return 1;
-    } else if (compress_param == "zlib") {
+    if (compress_param == "zlib") {
         std::cout << "sorry, zlib compress mode is not implemented."
             << std::endl;
         return 1;
@@ -117,8 +114,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    PatchFile *patchFile = PatchFileFactory::create(
-        compress_param, executable_param);
+    PatchFile *patchFile = PatchFileFactory::create(compress_param);
 
     // generate patch file.
     if (patchFile == nullptr

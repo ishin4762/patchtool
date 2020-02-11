@@ -1,6 +1,6 @@
 // Copyright (C) 2020 ISHIN.
-#ifndef PATCHTOOL_PATCHGEN_PATCHFILE_FILELIST_H_
-#define PATCHTOOL_PATCHGEN_PATCHFILE_FILELIST_H_
+#ifndef PATCHTOOL_LIB_PATCHFILE_FILELIST_H_
+#define PATCHTOOL_LIB_PATCHFILE_FILELIST_H_
 
 #include <filesystem>
 #include <string>
@@ -17,17 +17,28 @@ struct File {
     bool isModify;
     uint64_t filePos;
     uint64_t fileSize;
+    uint64_t fileNewSize;
     uint32_t checkSum;
 
  public:
     File() :
         isDirectory(false), isAdd(false), isRemove(false), isModify(false),
         filePos(0), fileSize(0), checkSum(0) {}
+
+    static bool isEqual(const File& file1, const File& file2);
+    uint16_t encodeFlags();
+    void decodeFlags(uint16_t flags);
 };
 
-struct FileList {
+class FileList {
+ public:
     std::string rootDir;
     std::list<File> files;
+
+    void sortAsc();
+    void dump();
+    void search(const std::string& path);
+    static FileList calcDiff(const FileList& oldList, const FileList& newList);
 };
 
-#endif  // PATCHTOOL_PATCHGEN_PATCHFILE_FILELIST_H_
+#endif  // PATCHTOOL_LIB_PATCHFILE_FILELIST_H_

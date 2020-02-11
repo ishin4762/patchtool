@@ -7,37 +7,45 @@
 
 extern "C" {
 #include "lib/bsdiff/bsdiff.h"
+#include "lib/bsdiff/bspatch.h"
 }
 
 class PatchFile {
  public:
-    explicit PatchFile(const std::string& executableOS);
+    PatchFile() {}
     virtual bool encode(
         const std::string& oldDir,
         const std::string& newDir,
         const std::string& output) = 0;
-    virtual bool decode() = 0;
+    virtual bool decode(
+        const std::string& targetDir,
+        const std::string& input) = 0;
 
  protected:
-    std::string executableOS;
-    bsdiff_stream stream;
+    bsdiff_stream writeStream;
+    bspatch_stream readStream;
     char signature[16] = { 0 };
 
+    virtual bool openWriter(FILE* fp) = 0;
+    virtual bool closeWriter() = 0;
+    virtual bool openReader(FILE* fp) = 0;
+    virtual bool closeReader() = 0;
+
     FileList searchDiff(const std::string& oldDir, const std::string& newDir);
-    void writeFile(FILE* fp, FileList* fileList);
+    void create(FILE* fp, FileList* fileList);
+    bool apply(const std::string& targetDir, FILE* fp);
 
  private:
-    void search(FileList* fileList, const std::string& path);
-    void sortAsc(FileList* fileList);
-    void dump(const FileList& fileList);
-    FileList calcDiff(const FileList& oldList, const FileList& newList);
-    bool isFileEqual(const File& file1, const File& file2);
-    uint16_t encodeFlags(const File& file);
-    void decodeFlags(uint16_t flags, File* file);
     void writeFileInfo(FILE* fp, const FileList& fileList);
     void writeFileData(FILE* fp, FileList* fileList);
-    void addFile(const File& file);
-    void modifyFile(File* file);
+    void writeAdditionalFile(const File& file);
+    void writeUpdateFile(File* file);
+
+    bool readFileInfo(FILE* fp, FileList* fileList);
+    bool validateFiles(const FileList& fileList);
+    bool applyFiles(FILE* fp, const FileList& fileList);
+    bool generateFile(const std::string& writePath, const File& file);
+    bool updateFile(const std::string& writePath, const File& file);
 };
 
 #endif  // PATCHTOOL_LIB_PATCHFILE_PATCHFILE_H_

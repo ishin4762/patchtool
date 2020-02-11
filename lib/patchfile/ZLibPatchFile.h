@@ -7,12 +7,20 @@
 
 class ZLibPatchFile : public PatchFile {
  public:
-    explicit ZLibPatchFile(const std::string& executableOS);
+    ZLibPatchFile();
     bool encode(
         const std::string& oldDir,
         const std::string& newDir,
         const std::string& output);
-    bool decode();
+    bool decode(
+        const std::string& targetDir,
+        const std::string& input);
+
+ protected:
+    bool openWriter(FILE* fp);
+    bool closeWriter();
+    bool openReader(FILE* fp);
+    bool closeReader();
 };
 
 #endif  // PATCHTOOL_LIB_PATCHFILE_ZLIBPATCHFILE_H_

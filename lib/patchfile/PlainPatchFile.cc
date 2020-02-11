@@ -3,7 +3,6 @@
 #include <cstring>
 
 #include "PlainPatchFile.h"
-#include "FileList.h"
 
 static int plain_write(
     bsdiff_stream* stream,
@@ -20,16 +19,29 @@ static int plain_write(
     return 0;
 }
 
+static int plain_read(
+    const bspatch_stream* stream,
+    void* buffer,
+    int size) {
+    size_t ret;
+    FILE* file;
+
+    file = static_cast<FILE*>(stream->opaque);
+    ret = fread(buffer, 1, size, file);
+    if (ret < 0) {
+        return -1;
+    }
+    return 0;
+}
+
 /**
  * constructor.
  */
-PlainPatchFile::PlainPatchFile(
-    const std::string& executableOS) :
-    PatchFile(executableOS) {
-    memset(&file, 0, sizeof(file));
-    stream.malloc = malloc;
-    stream.free = free;
-    stream.write = plain_write;
+PlainPatchFile::PlainPatchFile() {
+    writeStream.malloc = malloc;
+    writeStream.free = free;
+    writeStream.write = plain_write;
+    readStream.read = plain_read;
 
     // copy signature.
     const char SIGNATURE[16] = "PLAIN ver.1.00";
@@ -45,13 +57,12 @@ bool PlainPatchFile::encode(
     FileList diffList = searchDiff(oldDir, newDir);
 
     // write file.
-    file = fopen(output.c_str(), "wb");
+    FILE* file = fopen(output.c_str(), "wb");
     if (file == nullptr) {
         std::cerr << "cannot create " << output << std::endl;
         return false;
     }
-    stream.opaque = file;
-    writeFile(file, &diffList);
+    create(file, &diffList);
 
     // flush.
     fclose(file);
@@ -60,7 +71,40 @@ bool PlainPatchFile::encode(
 }
 
 
-bool PlainPatchFile::decode() {
-    // Do nothing.
+bool PlainPatchFile::decode(
+    const std::string& targetDir,
+    const std::string& input) {
+
+    // read file.
+    FILE* file = fopen(input.c_str(), "rb");
+    if (file == nullptr) {
+        std::cerr << "cannot open " << input << std::endl;
+        return false;
+    }
+    bool ret = apply(targetDir, file);
+
+    // finish.
+    fclose(file);
+
+    return ret;
+}
+
+bool PlainPatchFile::openWriter(FILE* fp) {
+    writeStream.opaque = fp;
+    return true;
+}
+
+bool PlainPatchFile::closeWriter() {
+    // do nothing.
+    return true;
+}
+
+bool PlainPatchFile::openReader(FILE* fp) {
+    readStream.opaque = fp;
+    return true;
+}
+
+bool PlainPatchFile::closeReader() {
+    // do nothing.
     return true;
 }

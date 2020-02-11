@@ -8,15 +8,20 @@
 
 class BZip2PatchFile : public PatchFile {
  public:
-    explicit BZip2PatchFile(const std::string& executableOS);
+    BZip2PatchFile();
     bool encode(
         const std::string& oldDir,
         const std::string& newDir,
         const std::string& output);
-    bool decode();
+    bool decode(
+        const std::string& targetDir,
+        const std::string& input);
 
- private:
-    BZFILE* bz2;
+ protected:
+    bool openWriter(FILE* fp);
+    bool closeWriter();
+    bool openReader(FILE* fp);
+    bool closeReader();
 };
 
 #endif  // PATCHTOOL_LIB_PATCHFILE_BZIP2PATCHFILE_H_

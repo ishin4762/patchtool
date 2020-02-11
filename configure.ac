@@ -31,5 +31,6 @@ AC_CONFIG_FILES([Makefile
                  lib/Makefile
                  lib/bsdiff/Makefile
                  lib/patchfile/Makefile
-                 patchgen/Makefile])
+                 patchgen/Makefile
+                 patchapply/Makefile])
 AC_OUTPUT
