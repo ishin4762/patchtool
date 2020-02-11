@@ -17,6 +17,33 @@ AC_CHECK_LIB([bz2], [BZ2_bzReadOpen])
 
 AC_CHECK_HEADERS([fcntl.h limits.h stddef.h stdint.h stdlib.h string.h unistd.h])
 
+# Check for windows.
+build_linux=no
+build_windows=no
+build_mac=no
+
+# Detect the target system
+case "${host_os}" in
+ linux*)
+   build_linux=yes
+ ;;
+ cygwin*|mingw*)
+   build_windows=yes
+ ;;
+ darwin*)
+   build_mac=yes
+ ;;
+ *)
+   AC_MSG_ERROR(["OS $host_os is not supported"])
+ ;;
+esac
+
+# Pass the conditionals to automake
+AM_CONDITIONAL([LINUX], [test "$build_linux" = "yes"])
+AM_CONDITIONAL([WINDOWS], [test "$build_windows" = "yes"])
+AM_CONDITIONAL([OSX], [test "$build_mac" = "yes"])
+
+
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_INT64_T
 AC_TYPE_OFF_T

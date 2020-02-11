@@ -6,6 +6,14 @@
 #include <string>
 #include <list>
 
+#ifdef WINDOWS
+#define TO_PATH(x) File::charsToWchars((x))
+#define TO_STR(x) File::wcharsToChars((x))
+#else
+#define TO_PATH(x) (x)
+#define TO_STR(x) (x)
+#endif
+
 struct File {
     std::string name;
     std::string fullFilename;
@@ -26,6 +34,8 @@ struct File {
         filePos(0), fileSize(0), checkSum(0) {}
 
     static bool isEqual(const File& file1, const File& file2);
+    static std::wstring charsToWchars(const std::string& in);
+    static std::string wcharsToChars(const std::wstring& in);
     uint16_t encodeFlags();
     void decodeFlags(uint16_t flags);
 };

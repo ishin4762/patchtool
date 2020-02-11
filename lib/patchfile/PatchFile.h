@@ -46,6 +46,11 @@ class PatchFile {
     bool applyFiles(FILE* fp, const FileList& fileList);
     bool generateFile(const std::string& writePath, const File& file);
     bool updateFile(const std::string& writePath, const File& file);
+
+    bool readRawFile(
+        const std::string& readPath, uint8_t** buf, uint64_t* size);
+    bool writeRawFile(
+        const std::string& writePath, uint8_t* buf, uint64_t size);
 };
 
 #endif  // PATCHTOOL_LIB_PATCHFILE_PATCHFILE_H_

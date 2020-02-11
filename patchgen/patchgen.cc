@@ -16,9 +16,9 @@ static void show_usage() {
         << "usage: patchgen [OPTION] old-dir new-dir output"
         << std::endl << std::endl
         << "OPTION:" << std::endl
-        << "    -c, --compress (bzip2|zlib)  : compress mode"
+        << "    -n, --no-compress          : no-compress mode (debug)"
         << std::endl
-        << "    -e, --executable (win|mac)   : generate executable patch"
+        << "    -e, --executable (win|mac) : generate executable patch"
         << std::endl;
 }
 
@@ -28,25 +28,23 @@ static void show_usage() {
 int main(int argc, char* argv[]) {
     int opt;
     int long_index;
-    bool copt_available = false;
+    bool nopt_available = false;
     bool eopt_available = false;
-    std::string compress_param;
     std::string executable_param;
     std::vector<std::string> nonopt_args;
 
     struct option longopts[] = {
-        {"compress", required_argument, NULL, 'c'},
-        {"executable", required_argument, NULL, 'e'},
+        {"no-compress", no_argument,       NULL, 'n'},
+        {"executable",  required_argument, NULL, 'e'},
         {0, 0, 0, 0}
     };
 
     // parse arguments.
     while ((opt = getopt_long(argc, argv,
-        "c:e::", longopts, &long_index)) != -1) {
+        "ne::", longopts, &long_index)) != -1) {
         switch (opt) {
-        case 'c':
-            copt_available = true;
-            compress_param = optarg;
+        case 'n':
+            nopt_available = true;
             break;
 
         case 'e':
@@ -70,12 +68,7 @@ int main(int argc, char* argv[]) {
     }
 
     // validate arguments.
-    if (compress_param != "bzip2"
-        && compress_param != "zlib"
-        && !compress_param.empty()) {
-        show_usage();
-        return 1;
-    } else if (executable_param != "win"
+    if (executable_param != "win"
         && executable_param != "mac"
         && !executable_param.empty()) {
         show_usage();
@@ -84,11 +77,6 @@ int main(int argc, char* argv[]) {
 
     // not implemented error.
     // TODO(ishin): remove these validations after implements.
-    if (compress_param == "zlib") {
-        std::cout << "sorry, zlib compress mode is not implemented."
-            << std::endl;
-        return 1;
-    }
     if (executable_param == "win") {
         std::cout << "sorry, win executable mode is not implemented."
             << std::endl;
@@ -100,8 +88,8 @@ int main(int argc, char* argv[]) {
     }
 
     // check if targets are directories.
-    fs::path oldDir(nonopt_args[0]);
-    fs::path newDir(nonopt_args[1]);
+    fs::path oldDir(TO_PATH(nonopt_args[0]));
+    fs::path newDir(TO_PATH(nonopt_args[1]));
     if (!fs::exists(oldDir) || !fs::is_directory(oldDir)) {
         std::cout << nonopt_args[0] << " is not directory." << std::endl;
         return 1;
@@ -114,7 +102,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    PatchFile *patchFile = PatchFileFactory::create(compress_param);
+    PatchFile *patchFile = PatchFileFactory::create(
+        nopt_available ? "" : "bzip2");
 
     // generate patch file.
     if (patchFile == nullptr

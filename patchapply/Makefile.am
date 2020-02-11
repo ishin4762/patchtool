@@ -2,7 +2,11 @@ bin_PROGRAMS = patchapply
 
 patchapply_SOURCES = patchapply.cc
 
-patchapply_CXXFLAGS = -I../lib/patchfile -std=c++17 -Wl,-Bstatic -lbz2
+if WINDOWS
+WINCXXFLAGS = -static-libgcc -Wl,-Bstatic -lpthread -DWINDOWS -fexec-charset=CP932
+endif
+
+patchapply_CXXFLAGS = -I../lib/patchfile -std=c++17 -Wl,-Bstatic -lbz2 $(WINCXXFLAGS)
 
 patchapply_LDADD = \
 ../lib/patchfile/libpatchfile.la \

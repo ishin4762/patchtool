@@ -5,7 +5,6 @@
 #include <string>
 #include "PlainPatchFile.h"
 #include "BZip2PatchFile.h"
-#include "ZLibPatchFile.h"
 
 class PatchFileFactory {
  public:
@@ -14,9 +13,7 @@ class PatchFileFactory {
      */
     static PatchFile* create(
         const std::string& compressMode) {
-        if (compressMode == "zlib") {
-            return new ZLibPatchFile();
-        } else if (compressMode == "bzip2") {
+        if (compressMode == "bzip2") {
             return new BZip2PatchFile();
         }
         return new PlainPatchFile();
@@ -40,8 +37,6 @@ class PatchFileFactory {
             return new PlainPatchFile();
         } else if (strSignature.substr(0, 5) == "BZIP2") {
             return new BZip2PatchFile();
-        } else if (strSignature.substr(0, 4) == "ZLIB") {
-            return new ZLibPatchFile();
         }
 
         return nullptr;

@@ -8,12 +8,12 @@ static int plain_write(
     bsdiff_stream* stream,
     const void* buffer,
     int size) {
-    size_t ret;
+    int ret;
     FILE* file;
 
     file = static_cast<FILE*>(stream->opaque);
     ret = fwrite(const_cast<void*>(buffer), 1, size, file);
-    if (ret < 0) {
+    if (ret <= 0) {
         return -1;
     }
     return 0;
@@ -23,12 +23,12 @@ static int plain_read(
     const bspatch_stream* stream,
     void* buffer,
     int size) {
-    size_t ret;
+    int ret;
     FILE* file;
 
     file = static_cast<FILE*>(stream->opaque);
     ret = fread(buffer, 1, size, file);
-    if (ret < 0) {
+    if (ret != size) {
         return -1;
     }
     return 0;

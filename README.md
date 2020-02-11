@@ -7,15 +7,12 @@
 * ディレクトリ単位での差分抽出
 * ディレクトリへの差分適用
   * かんたんなチェックサムによる比較はおこなわれます
-* データの圧縮(現段階ではbzip2のみ)
+* bsdiff/bspatchを内部で利用(圧縮にはbzip2)
+  * ちなみに元のデータの17倍のメモリを食うらしいです。bsdiff/bspatch以外の差分抽出も検討した方がよさそう
 
 ## パッチの作り方(macOS, UNIX/Linux)
 ```
-# 非圧縮
 $ ./patchgen <旧バージョンのDIR> <新バージョンのDIR> <出力先パッチファイル>
-
-# bzip2圧縮
-$ ./patchgen -c bzip2 <旧バージョンのDIR> <新バージョンのDIR> <出力先パッチファイル>
 ```
 
 ## パッチの適用方法(macOS, UNIX/Linux)
@@ -25,11 +22,7 @@ $ ./patchapply <適用先DIR> <パッチファイル>
 
 ## パッチの作り方(Windows)
 ```
-# 非圧縮
 CMD> patchgen.exe <旧バージョンのDIR> <新バージョンのDIR> <出力先パッチファイル>
-
-# bzip2圧縮
-CMD> patchgen.exe -c bzip2 <旧バージョンのDIR> <新バージョンのDIR> <出力先パッチファイル>
 ```
 
 ## パッチの適用方法(Windows)

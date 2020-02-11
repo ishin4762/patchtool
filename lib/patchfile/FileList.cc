@@ -48,15 +48,15 @@ void FileList::dump() {
  * search and enumerate files and dirs.
  */
 void FileList::search(const std::string& path) {
-    for (const auto& entry : fs::directory_iterator(path)) {
+    for (const auto& entry : fs::directory_iterator(TO_PATH(path))) {
         if (entry.is_directory()) {
-            search(entry.path().generic_string());
+            search(TO_STR(entry.path()));
         } else if (entry.is_regular_file()) {
             File file;
             fs::path path = entry.path();
             fs::path basePath(rootDir);
-            file.name = fs::relative(path, basePath).generic_string();
-            file.fullFilename = entry.path().generic_string();
+            file.name = TO_STR(fs::relative(path, basePath));
+            file.fullFilename = TO_STR(entry.path());
             file.isDirectory =
                 entry.status().type() == fs::file_type::directory;
             files.push_back(file);
@@ -93,7 +93,8 @@ FileList FileList::calcDiff(
                     File fileNew = *newItr;
                     fileNew.isAdd = true;
                     fileNew.newFilename = fileNew.fullFilename;
-                    fileNew.fileNewSize = fs::file_size(fileNew.fullFilename);
+                    fileNew.fileNewSize =
+                        fs::file_size(TO_PATH(fileNew.fullFilename));
                     fileList.files.push_back(fileOld);
                     fileList.files.push_back(fileNew);
 
@@ -130,7 +131,7 @@ FileList FileList::calcDiff(
                         fileNew.newFilename = fileNew.fullFilename;
                         fileNew.oldFilename = oldItr->fullFilename;
                         fileNew.fileNewSize =
-                            fs::file_size(fileNew.fullFilename);
+                            fs::file_size(TO_PATH(fileNew.fullFilename));
                         fileList.files.push_back(fileNew);
 
                         oldItr++;
@@ -149,7 +150,7 @@ FileList FileList::calcDiff(
             File fileNew = *newItr;
             fileNew.isAdd = true;
             fileNew.newFilename = fileNew.fullFilename;
-            fileNew.fileNewSize = fs::file_size(fileNew.fullFilename);
+            fileNew.fileNewSize = fs::file_size(TO_PATH(fileNew.fullFilename));
             fileList.files.push_back(fileNew);
             newItr++;
         }
@@ -161,6 +162,7 @@ FileList FileList::calcDiff(
             File fileNew = *newItr;
             fileNew.isAdd = true;
             fileNew.newFilename = fileNew.fullFilename;
+            fileNew.fileNewSize = fs::file_size(TO_PATH(fileNew.fullFilename));
             fileList.files.push_back(fileNew);
         }
     } else if (oldItr != oldList.files.end() && newItr == newList.files.end()) {
@@ -183,12 +185,14 @@ bool File::isEqual(const File& file1, const File& file2) {
     const int BUFFER_SIZE = 1024;
     char buf1[BUFFER_SIZE], buf2[BUFFER_SIZE];
 
-    fp1 = fopen(file1.name.c_str(), "rb");
+    fp1 = fopen(file1.fullFilename.c_str(), "rb");
     if (fp1 == nullptr) {
+        std::cerr << "cannot open " << file1.fullFilename << std::endl;
         return false;
     }
-    fp2 = fopen(file1.name.c_str(), "rb");
+    fp2 = fopen(file2.fullFilename.c_str(), "rb");
     if (fp2 == nullptr) {
+        std::cerr << "cannot open " << file2.fullFilename << std::endl;
         fclose(fp1);
         return false;
     }
@@ -241,3 +245,40 @@ void File::decodeFlags(uint16_t flags) {
     isRemove = (flags & 0x04) >> 2;
     isModify = (flags & 0x08) >> 3;
 }
+
+#ifdef WINDOWS
+#include <windows.h>
+
+std::wstring File::charsToWchars(const std::string& in) {
+    int len = MultiByteToWideChar(CP_ACP, 0, in.c_str(), -1, nullptr, 0);
+    wchar_t* buf = new wchar_t[len+1];
+    std::wstring output;
+    memset(buf, 0, sizeof(wchar_t) * (len+1));
+    if (MultiByteToWideChar(CP_ACP, 0, in.c_str(), -1, buf, len)) {
+        output = buf;
+    } else {
+        std::cerr << "code convert error." << std::endl;
+    }
+    delete[] buf;
+
+    return output;
+}
+
+std::string File::wcharsToChars(const std::wstring& in) {
+    int len = WideCharToMultiByte(
+        CP_ACP, 0, in.c_str(), -1, nullptr, 0, nullptr, nullptr);
+    char* buf = new char[(len+1) * 2];
+    std::string output;
+    memset(buf, 0, sizeof(char) * (len+1) * 2);
+    if (WideCharToMultiByte(
+        CP_ACP, 0, in.c_str(), -1, buf, len, nullptr, nullptr)) {
+        output = buf;
+    } else {
+        std::cerr << "code convert error." << std::endl;
+    }
+    delete[] buf;
+
+    return output;
+}
+
+#endif

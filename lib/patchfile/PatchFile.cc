@@ -38,6 +38,7 @@ void PatchFile::create(FILE* fp, FileList* fileList) {
     writeFileInfo(fp, *fileList);
 
     // 2) write data.
+    std::cout << std::endl << "Writing..." << std::endl;
     writeFileData(fp, fileList);
 
     // 3) re-write headers. (filePos & fileSize will be non-zero.)
@@ -85,6 +86,8 @@ void PatchFile::writeFileData(FILE* fp, FileList* fileList) {
             continue;
         }
 
+        std::cout << entry.name << " ...";
+
         if (entry.isAdd) {
             entry.filePos = ftello(fp);
             openWriter(fp);
@@ -99,46 +102,47 @@ void PatchFile::writeFileData(FILE* fp, FileList* fileList) {
             closeWriter();
             entry.fileSize = ftello(fp) - entry.filePos;
         }
+
+        int64_t percent = entry.fileSize * 100 / entry.fileNewSize;
+        std::cout << entry.fileSize << "/" << entry.fileNewSize
+            << " bytes (" << percent << "%)" << std::endl;
     }
 }
 
 void PatchFile::writeAdditionalFile(const File& file) {
-    FILE *newFp = fopen(file.newFilename.c_str(), "rb");
-    if (newFp == nullptr) {
+    // open new file.
+    uint64_t newFileSize;
+    uint8_t* bufNew;
+    if (!readRawFile(file.newFilename, &bufNew, &newFileSize)) {
         return;
     }
 
-    const int BUFFER_SIZE = 1024;
-    char buf[BUFFER_SIZE];
-    int readCount;
-    do {
-        readCount = fread(buf, sizeof(char), BUFFER_SIZE, newFp);
-        writeStream.write(&writeStream, buf, readCount);
-    } while (readCount == BUFFER_SIZE);
+    // old file (dummy)
+    uint64_t oldFileSize = 0;
+    uint8_t* bufOld = new uint8_t[oldFileSize+1];
 
-    fclose(newFp);
+    // call bsdiff.
+    bsdiff(bufOld, oldFileSize, bufNew, newFileSize, &writeStream);
+
+    delete[] bufOld;
+    delete[] bufNew;
 }
 
 void PatchFile::writeUpdateFile(File* file) {
     // open old file.
-    int oldFd = open(file->oldFilename.c_str(), O_RDONLY, 0);
-    if (oldFd < 0) {
+    uint64_t oldFileSize;
+    uint8_t* bufOld;
+    if (!readRawFile(file->oldFilename, &bufOld, &oldFileSize)) {
         return;
     }
 
     // open new file.
-    int newFd = open(file->newFilename.c_str(), O_RDONLY, 0);
-    if (newFd < 0) {
-        close(oldFd);
+    uint64_t newFileSize;
+    uint8_t* bufNew;
+    if (!readRawFile(file->newFilename, &bufNew, &newFileSize)) {
+        delete[] bufOld;
         return;
     }
-
-    // read old file.
-    off_t oldFileSize = lseek(oldFd, 0, SEEK_END);
-    lseek(oldFd, 0, SEEK_SET);
-    uint8_t* bufOld = new uint8_t[oldFileSize+1];
-    read(oldFd, bufOld, oldFileSize);
-    close(oldFd);
 
     // calc checksum.
     uint32_t checkSum = 0;
@@ -147,13 +151,6 @@ void PatchFile::writeUpdateFile(File* file) {
         checkSum += *ptrOld;
     }
     file->checkSum = checkSum;
-
-    // read new file.
-    off_t newFileSize = lseek(newFd, 0, SEEK_END);
-    lseek(newFd, 0, SEEK_SET);
-    uint8_t* bufNew = new uint8_t[newFileSize+1];
-    read(newFd, bufNew, newFileSize);
-    close(newFd);
 
     // call bsdiff.
     bsdiff(bufOld, oldFileSize, bufNew, newFileSize, &writeStream);
@@ -186,6 +183,7 @@ bool PatchFile::apply(const std::string& targetDir, FILE* fp) {
     }
 
     // 3) apply.
+    std::cout << "Applying..." << std::endl;
     if (!applyFiles(fp, fileList)) {
         return false;
     }
@@ -268,7 +266,7 @@ bool PatchFile::validateFiles(const FileList& fileList) {
         if (entry.isRemove || entry.isModify) {
             // check if file or directory exists.
             filePath = fileList.rootDir + "/" + entry.name;
-            if (!fs::exists(filePath)) {
+            if (!fs::exists(TO_PATH(filePath))) {
                 std::cerr << (entry.isDirectory ? "directory" : "file")
                     << " " << entry.name << " is not found." << std::endl;
                 return false;
@@ -276,18 +274,11 @@ bool PatchFile::validateFiles(const FileList& fileList) {
         }
         if (entry.isModify && !entry.isDirectory) {
             // check checksum.
-            int fd = open(filePath.c_str(), O_RDONLY, 0);
-            if (fd < 0) {
-                std::cerr << "cannot open "
-                    << " " << entry.name << std::endl;
+            uint64_t fileSize;
+            uint8_t* buf;
+            if (!readRawFile(filePath, &buf, &fileSize)) {
                 return false;
             }
-
-            off_t fileSize = lseek(fd, 0, SEEK_END);
-            lseek(fd, 0, SEEK_SET);
-            uint8_t* buf = new uint8_t[fileSize+1];
-            read(fd, buf, fileSize);
-            close(fd);
 
             // calc checksum.
             uint32_t checkSum = 0;
@@ -316,11 +307,13 @@ bool PatchFile::applyFiles(FILE* fp, const FileList& fileList) {
     }
 
     for (auto& entry : fileList.files) {
+        std::cout << entry.name << std::endl;
+
         if (entry.isDirectory) {
             if (entry.isAdd) {
                 std::string filePath = fileList.rootDir + "/" + entry.name;
                 try {
-                    fs::create_directory(filePath);
+                    fs::create_directory(TO_PATH(filePath));
                 } catch (fs::filesystem_error& ex) {
                     std::cerr << "cannot create " << entry.name << std::endl;
                     return false;
@@ -328,7 +321,7 @@ bool PatchFile::applyFiles(FILE* fp, const FileList& fileList) {
             } else if (entry.isRemove) {
                 std::string filePath = fileList.rootDir + "/" + entry.name;
                 try {
-                    fs::remove_all(filePath);
+                    fs::remove_all(TO_PATH(filePath));
                 } catch (fs::filesystem_error& ex) {
                     std::cerr << "cannot remove " << entry.name << std::endl;
                     return false;
@@ -344,7 +337,7 @@ bool PatchFile::applyFiles(FILE* fp, const FileList& fileList) {
             } else if (entry.isRemove) {
                 std::string filePath = fileList.rootDir + "/" + entry.name;
                 try {
-                    fs::remove(filePath);
+                    fs::remove(TO_PATH(filePath));
                 } catch (fs::filesystem_error& ex) {
                     std::cerr << "cannot remove " << entry.name << std::endl;
                     return false;
@@ -364,72 +357,132 @@ bool PatchFile::applyFiles(FILE* fp, const FileList& fileList) {
 
 bool PatchFile::generateFile(
     const std::string& writePath, const File& file) {
-    FILE *newFp = fopen(writePath.c_str(), "wb");
-    if (newFp == nullptr) {
-        std::cerr << "cannot open " << writePath << std::endl;
-        return false;
-    }
+    // allocate new file buffer.
+    off_t newFileSize = file.fileNewSize;
+    uint8_t* bufNew = new uint8_t[newFileSize+1];
+    memset(bufNew, 0, newFileSize + 1);
 
-    const int BUFFER_SIZE = 1024;
-    char buf[BUFFER_SIZE];
-    int readSize, writeCount;
-    size_t totalRead = 0;
-    do {
-        if (totalRead + BUFFER_SIZE > file.fileNewSize) {
-            readSize = file.fileNewSize - totalRead;
-        } else {
-            readSize = BUFFER_SIZE;
-        }
+    // old file (dummy)
+    off_t oldFileSize = 0;
+    uint8_t* bufOld = new uint8_t[oldFileSize+1];
 
-        if (readSize > 0) {
-            readStream.read(&readStream, buf, readSize);
-            totalRead += readSize;
-            writeCount = fwrite(buf, sizeof(char), readSize, newFp);
-        }
-    } while (readSize > 0);
+    // call bspatch.
+    bspatch(bufOld, oldFileSize, bufNew, newFileSize, &readStream);
 
-    fclose(newFp);
-    return true;
+    // write file.
+    bool ret = writeRawFile(writePath, bufNew, newFileSize);
+    delete[] bufOld;
+    delete[] bufNew;
+
+    return ret;
 }
 
 bool PatchFile::updateFile(
     const std::string& writePath, const File& file) {
     // open old file.
-    int oldFd = open(writePath.c_str(), O_RDONLY, 0);
-    if (oldFd < 0) {
-        std::cerr << "cannot open " << writePath << std::endl;
+    uint64_t oldFileSize;
+    uint8_t* bufOld;
+    if (!readRawFile(writePath, &bufOld, &oldFileSize)) {
         return false;
     }
 
-    // read old file.
-    off_t oldFileSize = lseek(oldFd, 0, SEEK_END);
-    lseek(oldFd, 0, SEEK_SET);
-    uint8_t* bufOld = new uint8_t[oldFileSize+1];
-    read(oldFd, bufOld, oldFileSize);
-    struct stat st;
-    fstat(oldFd, &st);
-    close(oldFd);
-
     // allocate new file buffer.
-    off_t newFileSize = file.fileNewSize;
+    uint64_t newFileSize = file.fileNewSize;
     uint8_t* bufNew = new uint8_t[newFileSize+1];
 
     // call bspatch.
     bspatch(bufOld, oldFileSize, bufNew, newFileSize, &readStream);
 
     // write file.
-    oldFd = open(writePath.c_str(), O_CREAT|O_TRUNC|O_WRONLY, st.st_mode);
-    if (oldFd < 0) {
-        std::cerr << "cannot write " << writePath << std::endl;
-        delete[] bufOld;
-        delete[] bufNew;
-        return false;
-    }
-    write(oldFd, bufNew, newFileSize);
-    close(oldFd);
-
+    bool ret = writeRawFile(writePath, bufNew, newFileSize);
     delete[] bufOld;
     delete[] bufNew;
 
-    return true;
+    return ret;
+}
+
+bool PatchFile::readRawFile(
+    const std::string& readPath, uint8_t** buf, uint64_t* size) {
+
+    FILE *fp = fopen(readPath.c_str(), "rb");
+    if (fp == nullptr) {
+        std::cerr << "cannot read " << readPath << std::endl;
+        return false;
+    }
+
+    // get file length.
+    fseeko(fp, 0, SEEK_END);
+    *size = ftello(fp);
+    fseeko(fp, 0, SEEK_SET);
+
+    // allocate buffer
+    *buf = new uint8_t[*size];
+
+    bool ret = true;
+    const int BUFFER_SIZE = 1024;
+    uint8_t* ptr = *buf;
+    int readSize = 0;
+    uint64_t totalRead = 0;
+    do {
+        if (totalRead + BUFFER_SIZE > *size) {
+            readSize = *size - totalRead;
+        } else {
+            readSize = BUFFER_SIZE;
+        }
+
+        if (readSize > 0) {
+            readSize = fread(ptr, sizeof(char), readSize, fp);
+            if (readSize < 0) {
+                std::cerr << "error occurred in reading. val="
+                    << readSize << std::endl;
+                ret = false;
+                delete[] *buf;
+                *size = 0;
+                break;
+            }
+            totalRead += readSize;
+            ptr += readSize;
+        }
+    } while (readSize > 0);
+
+    fclose(fp);
+    return ret;
+}
+
+bool PatchFile::writeRawFile(
+    const std::string& writePath, uint8_t* buf, uint64_t size) {
+
+    FILE *fp = fopen(writePath.c_str(), "wb");
+    if (fp == nullptr) {
+        std::cerr << "cannot write " << writePath << std::endl;
+        return false;
+    }
+
+    bool ret = true;
+    const int BUFFER_SIZE = 1024;
+    uint8_t* ptr = buf;
+    int writeSize = 0;
+    uint64_t totalWrite = 0;
+    do {
+        if (totalWrite + BUFFER_SIZE > size) {
+            writeSize = size - totalWrite;
+        } else {
+            writeSize = BUFFER_SIZE;
+        }
+
+        if (writeSize > 0) {
+            writeSize = fwrite(ptr, sizeof(char), writeSize, fp);
+            if (writeSize < 0) {
+                std::cerr << "error occurred in writing. val="
+                    << writeSize << std::endl;
+                ret = false;
+                break;
+            }
+            totalWrite += writeSize;
+            ptr += writeSize;
+        }
+    } while (writeSize > 0);
+
+    fclose(fp);
+    return ret;
 }

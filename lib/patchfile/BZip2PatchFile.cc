@@ -62,6 +62,7 @@ bool BZip2PatchFile::encode(
         std::cerr << "cannot create " << output << std::endl;
         return false;
     }
+    
     create(file, &diffList);
 
     // flush.
