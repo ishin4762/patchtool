@@ -1,9 +1,6 @@
 // Copyright (C) 2020 ISHIN.
 #include <iostream>
-#include <filesystem>
 #include "FileList.h"
-
-namespace fs = std::filesystem;
 
 /**
  * internal compare function.

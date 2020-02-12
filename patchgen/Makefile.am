@@ -6,7 +6,7 @@ if WINDOWS
 WINCXXFLAGS = -static-libgcc -Wl,-Bstatic -lpthread -DWINDOWS -fexec-charset=CP932
 endif
 
-patchgen_CXXFLAGS = -I../lib/patchfile -std=c++17 -Wl,-Bstatic -lbz2 $(WINCXXFLAGS)
+patchgen_CXXFLAGS = -I../lib/patchfile -std=gnu++17 -lstdc++fs $(WINCXXFLAGS) -lbz2 
 
 patchgen_LDADD = \
 ../lib/patchfile/libpatchfile.la \

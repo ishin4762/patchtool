@@ -1,6 +1,6 @@
 // Copyright (C) 2020 ISHIN.
-#ifndef PATCHTOOL_LIB_PATCHFILE_PATCHFILE_H_
-#define PATCHTOOL_LIB_PATCHFILE_PATCHFILE_H_
+#ifndef LIB_PATCHFILE_PATCHFILE_H_
+#define LIB_PATCHFILE_PATCHFILE_H_
 
 #include <string>
 #include "FileList.h"
@@ -53,4 +53,4 @@ class PatchFile {
         const std::string& writePath, uint8_t* buf, uint64_t size);
 };
 
-#endif  // PATCHTOOL_LIB_PATCHFILE_PATCHFILE_H_
+#endif  // LIB_PATCHFILE_PATCHFILE_H_

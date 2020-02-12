@@ -1,6 +1,6 @@
 // Copyright (C) 2020 ISHIN.
-#ifndef PATCHTOOL_LIB_PATCHFILE_PLAINPATCHFILE_H_
-#define PATCHTOOL_LIB_PATCHFILE_PLAINPATCHFILE_H_
+#ifndef LIB_PATCHFILE_PLAINPATCHFILE_H_
+#define LIB_PATCHFILE_PLAINPATCHFILE_H_
 
 #include <bzlib.h>
 #include <string>
@@ -24,4 +24,4 @@ class PlainPatchFile : public PatchFile {
     bool closeReader();
 };
 
-#endif  // PATCHTOOL_LIB_PATCHFILE_PLAINPATCHFILE_H_
+#endif  // LIB_PATCHFILE_PLAINPATCHFILE_H_

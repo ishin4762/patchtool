@@ -1,8 +1,15 @@
 // Copyright (C) 2020 ISHIN.
-#ifndef PATCHTOOL_LIB_PATCHFILE_FILELIST_H_
-#define PATCHTOOL_LIB_PATCHFILE_FILELIST_H_
+#ifndef LIB_PATCHFILE_FILELIST_H_
+#define LIB_PATCHFILE_FILELIST_H_
 
+#if __GNUG__ <= 7
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#else
 #include <filesystem>
+namespace fs = std::filesystem;
+#endif
+
 #include <string>
 #include <list>
 
@@ -34,8 +41,10 @@ struct File {
         filePos(0), fileSize(0), checkSum(0) {}
 
     static bool isEqual(const File& file1, const File& file2);
+#ifdef WINDOWS
     static std::wstring charsToWchars(const std::string& in);
     static std::string wcharsToChars(const std::wstring& in);
+#endif
     uint16_t encodeFlags();
     void decodeFlags(uint16_t flags);
 };
@@ -51,4 +60,4 @@ class FileList {
     static FileList calcDiff(const FileList& oldList, const FileList& newList);
 };
 
-#endif  // PATCHTOOL_LIB_PATCHFILE_FILELIST_H_
+#endif  // LIB_PATCHFILE_FILELIST_H_

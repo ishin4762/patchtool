@@ -10,6 +10,7 @@ AM_INIT_AUTOMAKE([1.9])
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_CXX
+AX_CXX_COMPILE_STDCXX_17([noext], [mandatory])
 
 # Checks for libraries.
 # FIXME: Replace `main' with a function in `-lbz2':

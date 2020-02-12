@@ -5,11 +5,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <cstring>
-#include <filesystem>
 #include <iostream>
 #include "PatchFile.h"
-
-namespace fs = std::filesystem;
 
 /**
  * search diff between old-dir and new-dir.

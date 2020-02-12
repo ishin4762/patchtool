@@ -1,12 +1,10 @@
 // Copyright(C) 2020 ISHIN.
 #include <getopt.h>
-#include <filesystem>
+
 #include <iostream>
 #include <string>
 #include <vector>
 #include "lib/patchfile/PatchFileFactory.h"
-
-namespace fs = std::filesystem;
 
 /**
  *  show usage.
