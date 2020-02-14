@@ -13,8 +13,6 @@ AC_PROG_CXX
 AX_CXX_COMPILE_STDCXX_17([noext], [mandatory])
 
 # Checks for libraries.
-# FIXME: Replace `main' with a function in `-lbz2':
-AC_CHECK_LIB([bz2], [BZ2_bzReadOpen])
 
 AC_CHECK_HEADERS([fcntl.h limits.h stddef.h stdint.h stdlib.h string.h unistd.h])
 

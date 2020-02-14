@@ -2,7 +2,6 @@
 #ifndef LIB_PATCHFILE_PLAINPATCHFILE_H_
 #define LIB_PATCHFILE_PLAINPATCHFILE_H_
 
-#include <bzlib.h>
 #include <string>
 #include "PatchFile.h"
 

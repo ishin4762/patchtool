@@ -46,18 +46,37 @@ void FileList::dump() {
  */
 void FileList::search(const std::string& path) {
     for (const auto& entry : fs::directory_iterator(TO_PATH(path))) {
-        if (entry.is_directory()) {
+#ifdef FS_EXPERIMENTAL
+        if (fs::is_directory(entry)) {
             search(TO_STR(entry.path()));
-        } else if (entry.is_regular_file()) {
+        } else if (fs::is_regular_file(entry)) {
             File file;
-            fs::path path = entry.path();
             fs::path basePath(rootDir);
-            file.name = TO_STR(fs::relative(path, basePath));
+            // calc relative path from rootDir
+            std::string relativePath =
+                (TO_STR(entry.path())).replace(0, TO_STR(basePath).size(), "");
+            if (relativePath.at(0) == '\\') {
+                relativePath.replace(0, 1, "");
+            }
+            file.name = relativePath;
             file.fullFilename = TO_STR(entry.path());
             file.isDirectory =
                 entry.status().type() == fs::file_type::directory;
             files.push_back(file);
         }
+#else
+        if (entry.is_directory()) {
+            search(TO_STR(entry.path()));
+        } else if (entry.is_regular_file()) {
+            File file;
+            fs::path basePath(rootDir);
+            file.name = TO_STR(fs::relative(entry.path(), basePath));
+            file.fullFilename = TO_STR(entry.path());
+            file.isDirectory =
+                entry.status().type() == fs::file_type::directory;
+            files.push_back(file);
+        }
+#endif
     }
 }
 

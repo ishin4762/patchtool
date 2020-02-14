@@ -1,1 +1,1 @@
-SUBDIRS = bsdiff patchfile
+SUBDIRS = bzip2 bsdiff patchfile

@@ -2,8 +2,10 @@
 #ifndef LIB_PATCHFILE_BZIP2PATCHFILE_H_
 #define LIB_PATCHFILE_BZIP2PATCHFILE_H_
 
-#include <bzlib.h>
 #include <string>
+extern "C" {
+#include "lib/bzip2/bzlib.h"
+}
 #include "PatchFile.h"
 
 class BZip2PatchFile : public PatchFile {

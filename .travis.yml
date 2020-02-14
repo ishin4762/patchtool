@@ -7,7 +7,6 @@ matrix:
       compiler: gcc
       env:
         - CROSSCOMPILE=x86_64-w64-mingw32
-        - ARCHITECTURE=x86_64-linux-gnu
       addons:
         apt:
           packages:
@@ -17,13 +16,11 @@ matrix:
             - gcc-mingw-w64-x86-64
             - g++-mingw-w64-x86-64
             - mingw-w64-x86-64-dev
-            - libbz2-dev
     - os: linux
       dist: bionic
       compiler: gcc
       env:
         - CROSSCOMPILE=i686-w64-mingw32
-        - ARCHITECTURE=i386-linux-gnu
       addons:
         apt:
           packages:
@@ -33,7 +30,6 @@ matrix:
             - gcc-mingw-w64-i686
             - g++-mingw-w64-i686
             - mingw-w64-i686-dev
-            - libbz2-dev
     - os: osx
       osx_image: xcode11
       compiler: gcc
@@ -52,9 +48,9 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update                   ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew upgrade automake         ; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install autoconf-archive ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install gcc9 | true       ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install gcc9 | true      ; fi
   - ./autogen.sh
 
 script:
   - if [[ "$CROSSCOMPILE" == "native" ]]; then ./configure && make ; fi
-  - if [[ "$CROSSCOMPILE" == "x86_64-w64-mingw32" || "$CROSSCOMPILE" == "i686-w64-mingw32" ]]; then CXXFLAGS="-I/usr/${CROSSCOMPILE}/include -I/usr/include/ -I/usr/include/${ARCHITECTURE}" LDFLAGS="-L/usr/${CROSSCOMPILE}/lib -L/usr/lib/${ARCHITECTURE}" CC="$CROSSCOMPILE"-gcc CXX="$CROSSCOMPILE"-g++ ./configure --host="$CROSSCOMPILE" && make ; fi
+  - if [[ "$CROSSCOMPILE" == "x86_64-w64-mingw32" || "$CROSSCOMPILE" == "i686-w64-mingw32" ]]; then CXXFLAGS="-I/usr/${CROSSCOMPILE}/include" CC="$CROSSCOMPILE"-gcc CXX="$CROSSCOMPILE"-g++ AR="$CROSSCOMPILE"-ar ./configure --host="$CROSSCOMPILE" && INC_DIR="-I/usr/${CROSSCOMPILE}/include" make ; fi

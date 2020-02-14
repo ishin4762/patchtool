@@ -5,6 +5,7 @@
 #if __GNUG__ <= 7
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
+#define FS_EXPERIMENTAL
 #else
 #include <filesystem>
 namespace fs = std::filesystem;
