@@ -20,5 +20,5 @@ target_link_libraries(patchgen
 
 if(WINDOWS)
     add_definitions(-DWINDOWS)
-    set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")
+    set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -lstdc++fs -static")
 endif()
