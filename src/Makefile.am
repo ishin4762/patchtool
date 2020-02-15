@@ -1,1 +1,0 @@
-SUBDIRS = lib patchfile patchgen patchapply

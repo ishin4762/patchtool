@@ -8,7 +8,7 @@ ARCH=$1
 PUSH=$2
 
 function generate_license() {
-    OUTFILE=build/${ARCH}/LICENSE
+    OUTFILE=dist/${ARCH}/LICENSE
     # patchtool
     echo -e "patchtool\n" > $OUTFILE
     cat ./LICENSE >> $OUTFILE
@@ -25,23 +25,21 @@ function generate_license() {
 }
 
 if [[ "$ARCH" == "win64" ]]; then
-    rm -r build/${ARCH}/*
-    cp src/patchgen/.libs/patchgen.exe build/${ARCH}/
-    cp src/patchapply/.libs/patchapply.exe build/${ARCH}/
+    rm -r dist/${ARCH}/*
+    cp build/src/patchgen/patchgen.exe dist/${ARCH}/
+    cp build/src/patchapply/patchapply.exe dist/${ARCH}/
 fi
 
 if [[ "$ARCH" == "win32" ]]; then
-    rm -r build/${ARCH}/*
-    cp src/patchgen/.libs/patchgen.exe build/${ARCH}/
-    cp src/patchapply/.libs/patchapply.exe build/${ARCH}/
+    rm -r dist/${ARCH}/*
+    cp build/src/patchgen/patchgen.exe dist/${ARCH}/
+    cp build/src/patchapply/patchapply.exe dist/${ARCH}/
 fi
 
 if [[ "$ARCH" == "macos" ]]; then
-    rm -r build/${ARCH}/*
-    cp src/patchgen/patchgen build/${ARCH}/
-    cp -R src/patchgen/.libs build/${ARCH}/
-    cp src/patchapply/patchapply build/${ARCH}/
-    cp -R src/patchapply/.libs build/${ARCH}/
+    rm -r dist/${ARCH}/*
+    cp build/src/patchgen/patchgen dist/${ARCH}/
+    cp build/src/patchapply/patchapply dist/${ARCH}/
 fi
 
 # generate texts
@@ -58,8 +56,8 @@ if [[ "$PUSH" == "push" ]]; then
     cd __git_repo
     git clone git@github.com:ishin4762/patchtool
     cd patchtool
-    cp ../../build/${ARCH}/* ./build/${ARCH}/
-    git add ./build/${ARCH}
+    cp ../../dist/${ARCH}/* ./dist/${ARCH}/
+    git add ./dist/${ARCH}
     git commit -m "[ci skip] commit by Travis CI (JOB ${TRAVIS_JOB_NUMBER})"
     git push origin ${TRAVIS_BRANCH}
 fi
