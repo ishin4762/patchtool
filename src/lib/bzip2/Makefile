@@ -12,16 +12,16 @@
 # in the file LICENSE.
 # ------------------------------------------------------------------
 
-SHELL?=/bin/sh
+SHELL=/bin/sh
 
 # To assist in cross-compiling
-CC?=gcc
-AR?=ar
-RANLIB?=ranlib
+CC=gcc
+AR=ar
+RANLIB=ranlib
 LDFLAGS=
 
 BIGFILES=-D_FILE_OFFSET_BITS=64
-CFLAGS=$(INC_DIR) -Wall -Winline -O2 -g $(BIGFILES)
+CFLAGS=-Wall -Winline -O2 -g $(BIGFILES)
 
 # Where you want it installed when you do 'make install'
 PREFIX=/usr/local
@@ -35,7 +35,7 @@ OBJS= blocksort.o  \
       decompress.o \
       bzlib.o
 
-all: libbz2.a
+all: libbz2.a bzip2 bzip2recover test
 
 bzip2: libbz2.a bzip2.o
 	$(CC) $(CFLAGS) $(LDFLAGS) -o bzip2 bzip2.o -L. -lbz2

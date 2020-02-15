@@ -11,11 +11,11 @@ matrix:
       addons:
         apt:
           packages:
-            - autoconf-archive
-            - mingw-w64
+            - gcc-mingw-w64-base
             - binutils-mingw-w64-x86-64
-            - gcc-mingw-w64-x86-64
             - g++-mingw-w64-x86-64
+            - gcc-mingw-w64-x86-64
+            - g++-mingw-w64
             - mingw-w64-x86-64-dev
     - os: linux
       dist: bionic
@@ -26,14 +26,13 @@ matrix:
       addons:
         apt:
           packages:
-            - autoconf-archive
-            - mingw-w64
+            - gcc-mingw-w64-base
             - binutils-mingw-w64-i686
-            - gcc-mingw-w64-i686
             - g++-mingw-w64-i686
+            - gcc-mingw-w64-i686
             - mingw-w64-i686-dev
     - os: osx
-      osx_image: xcode11
+      osx_image: xcode10
       compiler: gcc
       env:
         - CROSSCOMPILE=native
@@ -46,17 +45,42 @@ branches:
   - master
 
 before_install:
-  - if [[ "$CC_COMPILER" != "" ]]; then export CC="$CC_COMPILER" ; fi
-  - if [[ "$CXX_COMPILER" != "" ]]; then export CXX="$CXX_COMPILER" ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update                   ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew upgrade automake         ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install autoconf-archive ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install gcc9 | true      ; fi
-  - ./autogen.sh
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update               ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew upgrade cmake        ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install gcc@9 | true ; fi
 
 script:
-  - if [[ "$CROSSCOMPILE" == "native" ]]; then ./configure && make ; fi
-  - if [[ "$CROSSCOMPILE" == "x86_64-w64-mingw32" || "$CROSSCOMPILE" == "i686-w64-mingw32" ]]; then CXXFLAGS="-I/usr/${CROSSCOMPILE}/include" CC="$CROSSCOMPILE"-gcc CXX="$CROSSCOMPILE"-g++ AR="$CROSSCOMPILE"-ar ./configure --host="$CROSSCOMPILE" && INC_DIR="-I/usr/${CROSSCOMPILE}/include" make ; fi
+  - if [[ "$CROSSCOMPILE" == "native" ]]; then mkdir build && 
+    cd build && 
+    cmake .. -DCMAKE_C_COMPILER=${CC_COMPILER} -DCMAKE_CXX_COMPILER=${CXX_COMPILER} && 
+    make && 
+    cd .. ; fi
+  - if [[ "$CROSSCOMPILE" == "i686-w64-mingw32" ]]; then mkdir build && 
+    cd build && 
+    echo "SET(CMAKE_SYSTEM_NAME Windows)" > toolchain.cmake &&
+    echo "SET(CMAKE_C_COMPILER /usr/bin/i686-w64-mingw32-gcc)" >> toolchain.cmake &&
+    echo "SET(CMAKE_CXX_COMPILER /usr/bin/i686-w64-mingw32-g++)" >> toolchain.cmake &&
+    echo "SET(CMAKE_RC_COMPILER /usr/bin/i686-w64-mingw32-windres)" >> toolchain.cmake &&
+    echo "SET(CMAKE_FIND_ROOT_PATH /usr/i686-w64-mingw32)" >> toolchain.cmake &&
+    echo "SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)" >> toolchain.cmake &&
+    echo "SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)" >> toolchain.cmake &&
+    echo "SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)" >> toolchain.cmake &&
+    cmake -DCMAKE_TOOLCHAIN_FILE=toolchain.cmake  -DWINDOWS=1 .. &&
+    make && 
+    cd .. ; fi
+  - if [[ "$CROSSCOMPILE" == "x86_64-w64-mingw32" ]]; then mkdir build && 
+    cd build && 
+    echo "SET(CMAKE_SYSTEM_NAME Windows)" > toolchain.cmake &&
+    echo "SET(CMAKE_C_COMPILER /usr/bin/x86_64-w64-mingw32-gcc)" >> toolchain.cmake &&
+    echo "SET(CMAKE_CXX_COMPILER /usr/bin/x86_64-w64-mingw32-g++)" >> toolchain.cmake &&
+    echo "SET(CMAKE_RC_COMPILER /usr/bin/x86_64-w64-mingw32-windres)" >> toolchain.cmake &&
+    echo "SET(CMAKE_FIND_ROOT_PATH /usr/x86_64-w64-mingw32)" >> toolchain.cmake &&
+    echo "SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)" >> toolchain.cmake &&
+    echo "SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)" >> toolchain.cmake &&
+    echo "SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)" >> toolchain.cmake &&
+    cmake -DCMAKE_TOOLCHAIN_FILE=toolchain.cmake -DWINDOWS=1 .. &&
+    make && 
+    cd .. ; fi
 
 after_success:
   - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then GITHUB_TOKEN=${GITHUB_TOKEN} TRAVIS_BRANCH=${TRAVIS_BRANCH} TRAVIS_JOB_NUMBER=${TRAVIS_JOB_NUMBER} encrypted_61dd9981ab75_key=${encrypted_61dd9981ab75_key} ./deploy.sh $RELEASE push ; fi

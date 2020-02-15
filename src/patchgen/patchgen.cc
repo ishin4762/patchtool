@@ -1,6 +1,7 @@
 // Copyright(C) 2020 ISHIN.
-#include <getopt.h>
-
+extern "C" {
+    #include <getopt.h>
+}
 #include <iostream>
 #include <string>
 #include <vector>

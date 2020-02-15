@@ -1,9 +1,10 @@
 // Copyright (C) 2020 ISHIN.
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <fcntl.h>
+extern "C" {
+    #include <sys/types.h>
+    #include <sys/stat.h>
+    #include <unistd.h>
+    #include <fcntl.h>
+}
 #include <cstring>
 #include <iostream>
 #include "PatchFile.h"
