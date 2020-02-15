@@ -25,18 +25,18 @@ function generate_license() {
 }
 
 if [[ "$ARCH" == "win64" ]]; then
-    cp patchgen/patchgen.exe release/${ARCH}/
-    cp patchapply/patchapply.exe release/${ARCH}/
+    cp patchgen/.lib/patchgen.exe release/${ARCH}/
+    cp patchapply/.lib/patchapply.exe release/${ARCH}/
 fi
 
 if [[ "$ARCH" == "win32" ]]; then
-    cp patchgen/patchgen.exe release/${ARCH}/
-    cp patchapply/patchapply.exe release/${ARCH}/
+    cp patchgen/.lib/patchgen.exe release/${ARCH}/
+    cp patchapply/.lib/patchapply.exe release/${ARCH}/
 fi
 
 if [[ "$ARCH" == "macos" ]]; then
-    cp patchgen/patchgen release/${ARCH}/
-    cp patchapply/patchapply release/${ARCH}/
+    cp patchgen/.lib/patchgen release/${ARCH}/
+    cp patchapply/.lib/patchapply release/${ARCH}/
 fi
 
 # generate texts
