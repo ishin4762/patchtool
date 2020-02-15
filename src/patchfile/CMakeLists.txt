@@ -15,3 +15,6 @@ add_library(patchfile STATIC
     PlainPatchFile.cc
 )
 
+if(WINDOWS)
+    add_definitions(-DWINDOWS)
+endif()

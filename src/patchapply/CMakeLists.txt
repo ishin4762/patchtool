@@ -17,3 +17,8 @@ target_link_libraries(patchapply
     bspatch
     bz2
 )
+
+if(WINDOWS)
+    add_definitions(-DWINDOWS)
+    set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -static")
+endif()
