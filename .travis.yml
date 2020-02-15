@@ -57,6 +57,4 @@ before_install:
 script:
   - if [[ "$CROSSCOMPILE" == "native" ]]; then ./configure && make ; fi
   - if [[ "$CROSSCOMPILE" == "x86_64-w64-mingw32" || "$CROSSCOMPILE" == "i686-w64-mingw32" ]]; then CXXFLAGS="-I/usr/${CROSSCOMPILE}/include" CC="$CROSSCOMPILE"-gcc CXX="$CROSSCOMPILE"-g++ AR="$CROSSCOMPILE"-ar ./configure --host="$CROSSCOMPILE" && INC_DIR="-I/usr/${CROSSCOMPILE}/include" make ; fi
-
-deploy:
   - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then GITHUB_TOKEN=${GITHUB_TOKEN} TRAVIS_REPO_SLUG=${TRAVIS_REPO_SLUG} TRAVIS_BRANCH=${TRAVIS_BRANCH} encrypted_61dd9981ab75_key=${encrypted_61dd9981ab75_key} ./deploy.sh $RELEASE push ; fi
