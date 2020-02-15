@@ -25,18 +25,18 @@ function generate_license() {
 }
 
 if [[ "$ARCH" == "win64" ]]; then
-    cp patchgen/.lib/patchgen.exe release/${ARCH}/
-    cp patchapply/.lib/patchapply.exe release/${ARCH}/
+    cp patchgen/patchgen.exe release/${ARCH}/
+    cp patchapply/patchapply.exe release/${ARCH}/
 fi
 
 if [[ "$ARCH" == "win32" ]]; then
-    cp patchgen/.lib/patchgen.exe release/${ARCH}/
-    cp patchapply/.lib/patchapply.exe release/${ARCH}/
+    cp patchgen/patchgen.exe release/${ARCH}/
+    cp patchapply/patchapply.exe release/${ARCH}/
 fi
 
 if [[ "$ARCH" == "macos" ]]; then
-    cp patchgen/.lib/patchgen release/${ARCH}/
-    cp patchapply/.lib/patchapply release/${ARCH}/
+    cp patchgen/patchgen release/${ARCH}/
+    cp patchapply/patchapply release/${ARCH}/
 fi
 
 # generate texts
@@ -49,7 +49,7 @@ if [[ "$PUSH" == "push" ]]; then
     chmod 600 ~/.ssh/id_rsa
     echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
     git config --global user.email "brokendesk0206@gmail.com"
-    git config --global user.name "Travis CI"
+    git config --global user.name "ishin4762"
     git pull origin ${TRAVIS_BRANCH}
     git add release/${ARCH}
     git commit -m "[ci skip] deploy."
