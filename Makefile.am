@@ -1,1 +1,1 @@
-SUBDIRS = lib patchgen patchapply
+SUBDIRS = src

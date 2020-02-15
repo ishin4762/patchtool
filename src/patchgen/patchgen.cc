@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "lib/patchfile/PatchFileFactory.h"
+#include "patchfile/PatchFileFactory.h"
 
 /**
  *  show usage.

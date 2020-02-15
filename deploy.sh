@@ -8,7 +8,7 @@ ARCH=$1
 PUSH=$2
 
 function generate_license() {
-    OUTFILE=release/${ARCH}/LICENSE
+    OUTFILE=build/${ARCH}/LICENSE
     # patchtool
     echo -e "patchtool\n" > $OUTFILE
     cat ./LICENSE >> $OUTFILE
@@ -16,31 +16,30 @@ function generate_license() {
     # bzip2
     echo -e "\n---\n" >> $OUTFILE
     echo -e "bzip2\n" >> $OUTFILE
-    cat lib/bzip2/LICENSE >> $OUTFILE
+    cat src/lib/bzip2/LICENSE >> $OUTFILE
 
     # bsdiff
     echo -e "\n---\n" >> $OUTFILE
     echo -e "bsdiff\n" >> $OUTFILE
-    cat lib/bsdiff/LICENSE >> $OUTFILE
+    cat src/lib/bsdiff/LICENSE >> $OUTFILE
 }
 
 if [[ "$ARCH" == "win64" ]]; then
-    cp patchgen/patchgen.exe release/${ARCH}/
-    cp patchapply/patchapply.exe release/${ARCH}/
+    cp src/patchgen/patchgen.exe build/${ARCH}/
+    cp src/patchapply/patchapply.exe build/${ARCH}/
 fi
 
 if [[ "$ARCH" == "win32" ]]; then
-    cp patchgen/patchgen.exe release/${ARCH}/
-    cp patchapply/patchapply.exe release/${ARCH}/
+    cp src/patchgen/patchgen.exe build/${ARCH}/
+    cp src/patchapply/patchapply.exe build/${ARCH}/
 fi
 
 if [[ "$ARCH" == "macos" ]]; then
-    cp patchgen/patchgen release/${ARCH}/
-    cp patchapply/patchapply release/${ARCH}/
+    cp src/patchgen/patchgen build/${ARCH}/
+    cp src/patchapply/patchapply build/${ARCH}/
 fi
 
 # generate texts
-cp README.md release/${ARCH}/
 generate_license
 
 # push
@@ -54,8 +53,8 @@ if [[ "$PUSH" == "push" ]]; then
     cd __git_repo
     git clone git@github.com:ishin4762/patchtool
     cd patchtool
-    cp -R ../../release/${ARCH} ./release/${ARCH}
-    git add ./release/${ARCH}
+    cp ../../build/${ARCH}/* ./build/${ARCH}/
+    git add ./build/${ARCH}
     git commit -m "[ci skip] commit by Travis CI (JOB ${TRAVIS_JOB_NUMBER})"
     git push origin ${TRAVIS_BRANCH}
 fi

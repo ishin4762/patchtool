@@ -1,6 +1,6 @@
 // Copyright (C) 2020 ISHIN.
-#ifndef LIB_PATCHFILE_PATCHFILEFACTORY_H_
-#define LIB_PATCHFILE_PATCHFILEFACTORY_H_
+#ifndef SRC_PATCHFILE_PATCHFILEFACTORY_H_
+#define SRC_PATCHFILE_PATCHFILEFACTORY_H_
 
 #include <string>
 #include "PlainPatchFile.h"
@@ -43,4 +43,4 @@ class PatchFileFactory {
     }
 };
 
-#endif  // LIB_PATCHFILE_PATCHFILEFACTORY_H_
+#endif  // SRC_PATCHFILE_PATCHFILEFACTORY_H_
