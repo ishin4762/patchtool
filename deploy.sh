@@ -18,7 +18,7 @@ function generate_license() {
     echo -e "bzip2\n" >> $OUTFILE
     cat lib/bzip2/LICENSE >> $OUTFILE
 
-    # bzip2
+    # bsdiff
     echo -e "\n---\n" >> $OUTFILE
     echo -e "bsdiff\n" >> $OUTFILE
     cat lib/bsdiff/LICENSE >> $OUTFILE
@@ -45,7 +45,8 @@ generate_license
 
 # push
 if [[ "$PUSH" == "push" ]]; then
-    git add release/${ARCH}
+    git checkout master
+   git add release/${ARCH}
     git commit -m "[ci skip] deploy."
-    git push https://${GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git ${TRAVIS_BRANCH} 
+    git push https://${GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git ${TRAVIS_BRANCH}
 fi
