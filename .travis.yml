@@ -10,7 +10,7 @@ matrix:
         - RELEASE=win64
         - CXX_COMPILER=x86_64-w64-mingw32-g++
         - CC_COMPILER=x86_64-w64-mingw32-gcc
-        addons:
+      addons:
         apt:
           packages:
             - mingw-w64
@@ -27,7 +27,7 @@ matrix:
         - RELEASE=win32
         - CXX_COMPILER=i686-w64-mingw32-g++
         - CC_COMPILER=i686-w64-mingw32-gcc
-        addons:
+      addons:
         apt:
           packages:
             - mingw-w64
