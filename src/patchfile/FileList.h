@@ -1,6 +1,6 @@
 // Copyright (C) 2020 ISHIN.
-#ifndef LIB_PATCHFILE_FILELIST_H_
-#define LIB_PATCHFILE_FILELIST_H_
+#ifndef SRC_PATCHFILE_FILELIST_H_
+#define SRC_PATCHFILE_FILELIST_H_
 
 #if __GNUG__ <= 7
 #include <experimental/filesystem>
@@ -67,4 +67,4 @@ class FileList {
         const FileList& oldList, const FileList& newList);
 };
 
-#endif  // LIB_PATCHFILE_FILELIST_H_
+#endif  // SRC_PATCHFILE_FILELIST_H_

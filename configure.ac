@@ -54,9 +54,10 @@ AC_FUNC_MALLOC
 AC_CHECK_FUNCS([memset])
 
 AC_CONFIG_FILES([Makefile
-                 lib/Makefile
-                 lib/bsdiff/Makefile
-                 lib/patchfile/Makefile
-                 patchgen/Makefile
-                 patchapply/Makefile])
+                 src/Makefile
+                 src/lib/Makefile
+                 src/lib/bsdiff/Makefile
+                 src/patchfile/Makefile
+                 src/patchgen/Makefile
+                 src/patchapply/Makefile])
 AC_OUTPUT

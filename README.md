@@ -10,6 +10,12 @@
 * bsdiff/bspatchを内部で利用(圧縮にはbzip2)
   * ちなみに元のデータの17倍のメモリを食うらしいです。bsdiff/bspatch以外の差分抽出も検討した方がよさそう
 
+## リリース情報
+最新バージョン : ***
+
+過去のリリースはこちら:
+https://github.com/ishin4762/patchtool/releases
+
 ## パッチの作り方(macOS, UNIX/Linux)
 ```
 $ ./patchgen <旧バージョンのDIR> <新バージョンのDIR> <出力先パッチファイル>
@@ -41,5 +47,5 @@ $ make
 
 * このプログラムにかっこいい固有名詞をつける
 * 自己解凍パッチの実装
-* CI連携(Travis CIあたり？)
-* 隠しファイルの除外
+* ~~CI連携(Travis CIあたり？)~~
+* ~~隠しファイルの除外~~

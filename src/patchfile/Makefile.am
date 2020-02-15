@@ -10,7 +10,7 @@ if WINDOWS
 WINCXXFLAGS = -static-libgcc -Wl,-Bstatic -lpthread -DWINDOWS -fexec-charset=CP932
 endif
 
-libpatchfile_la_CXXFLAGS = -std=c++17 -lstdc++fs $(WINCXXFLAGS)
+libpatchfile_la_CXXFLAGS = -I../ -std=c++17 -lstdc++fs $(WINCXXFLAGS)
 
 libpatchfile_la_LIBADD = \
-../bzip2/libbz2.a
+../lib/bzip2/libbz2.a
