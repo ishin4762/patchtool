@@ -45,8 +45,13 @@ generate_license
 
 # push
 if [[ "$PUSH" == "push" ]]; then
-    git checkout master
-   git add release/${ARCH}
+    openssl aes-256-cbc -K $encrypted_61dd9981ab75_key -iv $encrypted_61dd9981ab75_iv -in travis_key.enc -out ~/.ssh/id_rsa -d
+    chmod 600 ~/.ssh/id_rsa
+    echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+    git config --global user.email "brokendesk0206@gmail.com"
+    git config --global user.name "Travis CI"
+    git pull origin ${TRAVIS_BRANCH}
+    git add release/${ARCH}
     git commit -m "[ci skip] deploy."
-    git push https://${GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git ${TRAVIS_BRANCH}
+    git push origin ${TRAVIS_BRANCH}
 fi
