@@ -1,4 +1,8 @@
 // Copyright (C) 2020 ISHIN.
+#if WINDOWS
+#include <fileapi.h>
+#endif
+
 #include <iostream>
 #include "FileList.h"
 
@@ -41,14 +45,47 @@ void FileList::dump() {
     }
 }
 
+std::regex reHiddenFiles("^\\..*");
+
 /**
  * search and enumerate files and dirs.
  */
-void FileList::search(const std::string& path) {
+void FileList::search(
+    const std::string& path,
+        bool isHiddenSearch,
+        bool isCheckIgnore,
+        const std::regex& reIgnorePattern) {
     for (const auto& entry : fs::directory_iterator(TO_PATH(path))) {
+        // check ignore pattern
+        std::string filename = TO_STR(entry.path().filename());
+        if (isCheckIgnore && std::regex_match(filename, reIgnorePattern)) {
+            std::cout << "skip(ignore match): " << filename << std::endl;
+            continue;
+        }
+
+#if WINDOWS
+        // check hidden pattern
+        uint32_t attr = GetFileAttributesA(TO_STR(entry.path()).c_str());
+        if (!isHiddenSearch && (attr & 0x2)) {
+            std::cout << "skip(hidden file): " << filename << std::endl;
+            continue;
+        }
+#else
+        // check hidden pattern
+        if (!isHiddenSearch &&
+            std::regex_match(filename, reHiddenFiles)) {
+            std::cout << "skip(hidden file): " << filename << std::endl;
+            continue;
+        }
+#endif
+
 #ifdef FS_EXPERIMENTAL
         if (fs::is_directory(entry)) {
-            search(TO_STR(entry.path()));
+            search(
+                TO_STR(entry.path()),
+                isHiddenSearch,
+                isCheckIgnore,
+                reIgnorePattern);
         } else if (fs::is_regular_file(entry)) {
             File file;
             fs::path basePath(rootDir);
@@ -63,10 +100,16 @@ void FileList::search(const std::string& path) {
             file.isDirectory =
                 entry.status().type() == fs::file_type::directory;
             files.push_back(file);
+        } else {
+            std::cout << "skip(unknown status): " << filename << std::endl;
         }
 #else
         if (entry.is_directory()) {
-            search(TO_STR(entry.path()));
+            search(
+                TO_STR(entry.path()),
+                isHiddenSearch,
+                isCheckIgnore,
+                reIgnorePattern);
         } else if (entry.is_regular_file()) {
             File file;
             fs::path basePath(rootDir);
@@ -75,6 +118,8 @@ void FileList::search(const std::string& path) {
             file.isDirectory =
                 entry.status().type() == fs::file_type::directory;
             files.push_back(file);
+        } else {
+            std::cout << "skip(unknown status): " << filename << std::endl;
         }
 #endif
     }
@@ -223,8 +268,12 @@ bool File::isEqual(const File& file1, const File& file2) {
         isContinue = (readCount1 == BUFFER_SIZE) && (readCount2 == BUFFER_SIZE);
         ptr1 = buf1;
         ptr2 = buf2;
+        if (readCount1 == 0 && readCount2 > 0) {
+            isEqual = false;
+        }
         while (readCount1-- > 0) {
             if (readCount2-- == 0) {
+                isEqual = false;
                 break;
             }
             if (*ptr1++ != *ptr2++) {

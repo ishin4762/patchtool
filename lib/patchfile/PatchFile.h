@@ -16,7 +16,9 @@ class PatchFile {
     virtual bool encode(
         const std::string& oldDir,
         const std::string& newDir,
-        const std::string& output) = 0;
+        const std::string& output,
+        bool isHiddenSearch,
+        const std::string& ignorePattern) = 0;
     virtual bool decode(
         const std::string& targetDir,
         const std::string& input) = 0;
@@ -31,7 +33,11 @@ class PatchFile {
     virtual bool openReader(FILE* fp) = 0;
     virtual bool closeReader() = 0;
 
-    FileList searchDiff(const std::string& oldDir, const std::string& newDir);
+    FileList searchDiff(
+        const std::string& oldDir,
+        const std::string& newDir,
+        bool isHiddenSearch,
+        const std::string& ignorePattern);
     void create(FILE* fp, FileList* fileList);
     bool apply(const std::string& targetDir, FILE* fp);
 

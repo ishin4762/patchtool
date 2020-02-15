@@ -14,9 +14,13 @@ static void show_usage() {
         << "usage: patchgen [OPTION] old-dir new-dir output"
         << std::endl << std::endl
         << "OPTION:" << std::endl
-        << "    -n, --no-compress          : no-compress mode (debug)"
+        << "    -n, --no-compress        : no-compress mode (debug)"
         << std::endl
-        << "    -e, --executable (win|mac) : generate executable patch"
+        << "    -e, --executable         : generate executable patch"
+        << std::endl
+        << "    -h, --add-hidden         : add hidden files."
+        << std::endl
+        << "    -i, --ignore pattern     : ignore regex pattern matched files."
         << std::endl;
 }
 
@@ -28,18 +32,22 @@ int main(int argc, char* argv[]) {
     int long_index;
     bool nopt_available = false;
     bool eopt_available = false;
-    std::string executable_param;
+    bool hopt_available = false;
+    bool iopt_available = false;
+    std::string ignore_param;
     std::vector<std::string> nonopt_args;
 
     struct option longopts[] = {
         {"no-compress", no_argument,       NULL, 'n'},
-        {"executable",  required_argument, NULL, 'e'},
+        {"executable",  no_argument,       NULL, 'e'},
+        {"add-hidden",  no_argument,       NULL, 'h'},
+        {"ignore",      required_argument, NULL, 'i'},
         {0, 0, 0, 0}
     };
 
     // parse arguments.
     while ((opt = getopt_long(argc, argv,
-        "ne::", longopts, &long_index)) != -1) {
+        "nehi:", longopts, &long_index)) != -1) {
         switch (opt) {
         case 'n':
             nopt_available = true;
@@ -47,7 +55,16 @@ int main(int argc, char* argv[]) {
 
         case 'e':
             eopt_available = true;
-            executable_param = optarg;
+            break;
+
+        case 'h':
+            hopt_available = true;
+            break;
+
+        case 'i':
+            iopt_available = true;
+            std::cerr << optarg << std::endl;
+            ignore_param = optarg;
             break;
 
         default:
@@ -65,22 +82,10 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // validate arguments.
-    if (executable_param != "win"
-        && executable_param != "mac"
-        && !executable_param.empty()) {
-        show_usage();
-        return 1;
-    }
-
     // not implemented error.
     // TODO(ishin): remove these validations after implements.
-    if (executable_param == "win") {
-        std::cout << "sorry, win executable mode is not implemented."
-            << std::endl;
-        return 1;
-    } else if (executable_param == "mac") {
-        std::cout << "sorry, mac executable mode is not implemented."
+    if (eopt_available) {
+        std::cout << "sorry, executable patch generating is not implemented."
             << std::endl;
         return 1;
     }
@@ -106,7 +111,8 @@ int main(int argc, char* argv[]) {
     // generate patch file.
     if (patchFile == nullptr
         || !patchFile->encode(
-            nonopt_args[0], nonopt_args[1], nonopt_args[2])) {
+            nonopt_args[0], nonopt_args[1], nonopt_args[2],
+            hopt_available, ignore_param)) {
         return 1;
     }
 
