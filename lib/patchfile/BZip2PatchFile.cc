@@ -51,10 +51,13 @@ BZip2PatchFile::BZip2PatchFile() {
 bool BZip2PatchFile::encode(
     const std::string& oldDir,
     const std::string& newDir,
-    const std::string& output) {
+    const std::string& output,
+    bool isHiddenSearch,
+    const std::string& ignorePattern) {
 
     // search directory diff.
-    FileList diffList = searchDiff(oldDir, newDir);
+    FileList diffList = searchDiff(
+        oldDir, newDir, isHiddenSearch, ignorePattern);
 
     // write file.
     FILE* file = fopen(output.c_str(), "wb");
@@ -62,7 +65,7 @@ bool BZip2PatchFile::encode(
         std::cerr << "cannot create " << output << std::endl;
         return false;
     }
-    
+
     create(file, &diffList);
 
     // flush.

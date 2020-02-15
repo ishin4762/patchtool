@@ -12,14 +12,28 @@
  * search diff between old-dir and new-dir.
  */
 FileList PatchFile::searchDiff(
-    const std::string& oldDir, const std::string& newDir) {
+    const std::string& oldDir,
+    const std::string& newDir,
+    bool isHiddenSearch,
+    const std::string& ignorePattern) {
+
+    std::regex reIgnorePattern(ignorePattern);
+
     FileList oldFileList, newFileList;
     oldFileList.rootDir = oldDir;
-    oldFileList.search(oldDir);
+    oldFileList.search(
+        oldDir,
+        isHiddenSearch,
+        !ignorePattern.empty(),
+        reIgnorePattern);
     oldFileList.sortAsc();
 
     newFileList.rootDir = newDir;
-    newFileList.search(newDir);
+    newFileList.search(
+        newDir,
+        isHiddenSearch,
+        !ignorePattern.empty(),
+        reIgnorePattern);
     newFileList.sortAsc();
 
     FileList diffList = FileList::calcDiff(oldFileList, newFileList);
@@ -100,9 +114,14 @@ void PatchFile::writeFileData(FILE* fp, FileList* fileList) {
             entry.fileSize = ftello(fp) - entry.filePos;
         }
 
-        int64_t percent = entry.fileSize * 100 / entry.fileNewSize;
-        std::cout << entry.fileSize << "/" << entry.fileNewSize
-            << " bytes (" << percent << "%)" << std::endl;
+        if (entry.fileNewSize > 0) {
+            int64_t percent = entry.fileSize * 100 / entry.fileNewSize;
+            std::cout << entry.fileSize << "/" << entry.fileNewSize
+                << " bytes (" << percent << "%)" << std::endl;
+        } else {
+           std::cout << entry.fileSize << "/" << entry.fileNewSize
+                << " bytes (---%)" << std::endl;
+        }
     }
 }
 
@@ -443,6 +462,7 @@ bool PatchFile::readRawFile(
     } while (readSize > 0);
 
     fclose(fp);
+
     return ret;
 }
 

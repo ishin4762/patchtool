@@ -14,7 +14,9 @@ class BZip2PatchFile : public PatchFile {
     bool encode(
         const std::string& oldDir,
         const std::string& newDir,
-        const std::string& output);
+        const std::string& output,
+        bool isHiddenSearch,
+        const std::string& ignorePattern);
     bool decode(
         const std::string& targetDir,
         const std::string& input);

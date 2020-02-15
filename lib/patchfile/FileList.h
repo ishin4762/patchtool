@@ -11,6 +11,7 @@ namespace fs = std::experimental::filesystem;
 namespace fs = std::filesystem;
 #endif
 
+#include <regex>
 #include <string>
 #include <list>
 
@@ -57,8 +58,13 @@ class FileList {
 
     void sortAsc();
     void dump();
-    void search(const std::string& path);
-    static FileList calcDiff(const FileList& oldList, const FileList& newList);
+    void search(
+        const std::string& path,
+        bool isHiddenSearch,
+        bool isCheckIgnore,
+        const std::regex& reIgnorePattern);
+    static FileList calcDiff(
+        const FileList& oldList, const FileList& newList);
 };
 
 #endif  // LIB_PATCHFILE_FILELIST_H_
