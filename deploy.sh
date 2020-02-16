@@ -36,6 +36,8 @@ if [[ "$ARCH" == "win32" ]]; then
     cp build/src/cli/patchgen.exe dist/${ARCH}/
     cp build/src/cli/patchapply.exe dist/${ARCH}/
     cp build/src/cli/selfapply.exe dist/${ARCH}/
+    # in order to escape win binary push simultaneously
+    sleep 10
 fi
 
 if [[ "$ARCH" == "macos" ]]; then
