@@ -11,6 +11,11 @@ extern "C" {
 
 #ifdef WINDOWS
 #include <windows.h>
+#else
+extern "C" {
+    #include <unistd.h>
+    #include <libproc.h>
+}
 #endif
 
 /**
@@ -35,9 +40,8 @@ int main(int argc, char* argv[]) {
     }
     prgFullPath = path;
 #else
-    char path[1024] = {};
-    readlink("/proc/self/exe", path, sizeof(path) - 1);
-    prgFullPath = path;
+    fs::path exePath(TO_PATH(argv[0]));
+    prgFullPath = TO_STR(fs::absolute(exePath));
 #endif
 
     // get program name
