@@ -115,11 +115,23 @@ int main(int argc, char* argv[]) {
 #ifdef WINDOWS
         std::string baseExec =
             TO_STR(execDir.parent_path());
+        if (baseExec.size() > 0) {
+            std::string lastChar = baseExec.substr(baseExec.size()-1, 1);
+            if (lastChar != "/" && lastChar != "\\") {
+                baseExec += "\\";
+            }
+        }
         baseExec += "selfapply.exe";
         std::string outputExec = nonopt_args[2] + ".exe";
 #else
         std::string baseExec =
             TO_STR(execDir.parent_path());
+        if (baseExec.size() > 0) {
+            std::string lastChar = baseExec.substr(baseExec.size()-1, 1);
+            if (lastChar != "/" && lastChar != "\\") {
+                baseExec += "/";
+            }
+        }
         baseExec += "selfapply";
         std::string outputExec = nonopt_args[2] + ".out";
 #endif
