@@ -44,6 +44,7 @@ if [[ "$ARCH" == "macos" ]]; then
     rm -r dist/${ARCH}/*
     cp build/src/cli/patchgen dist/${ARCH}/
     cp build/src/cli/patchapply dist/${ARCH}/
+    cp build/src/cli/selfapply dist/${ARCH}/
 fi
 
 # generate texts
