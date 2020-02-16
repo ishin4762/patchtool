@@ -17,6 +17,10 @@ class PlainPatchFile : public PatchFile {
     bool decode(
         const std::string& targetDir,
         const std::string& input);
+    bool decode(
+        const std::string& targetDir,
+        FILE *fp,
+        const uint64_t offset);
 
  protected:
     bool openWriter(FILE* fp);

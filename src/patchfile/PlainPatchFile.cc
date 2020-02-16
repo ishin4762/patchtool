@@ -73,7 +73,6 @@ bool PlainPatchFile::encode(
     return true;
 }
 
-
 bool PlainPatchFile::decode(
     const std::string& targetDir,
     const std::string& input) {
@@ -89,6 +88,19 @@ bool PlainPatchFile::decode(
     // finish.
     fclose(file);
 
+    return ret;
+}
+
+bool PlainPatchFile::decode(
+    const std::string& targetDir,
+    FILE *fp,
+    const uint64_t offset) {
+
+    // read file.
+    fileOffset = offset;
+    bool ret = apply(targetDir, fp);
+
+    // finish.
     return ret;
 }
 

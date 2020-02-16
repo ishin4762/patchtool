@@ -6,6 +6,7 @@ extern "C" {
 #include <string>
 #include <vector>
 #include "patchfile/PatchFileFactory.h"
+#include "patchfile/ResourceAttacher.h"
 
 /**
  *  show usage.
@@ -83,14 +84,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // not implemented error.
-    // TODO(ishin): remove these validations after implements.
-    if (eopt_available) {
-        std::cout << "sorry, executable patch generating is not implemented."
-            << std::endl;
-        return 1;
-    }
-
     // check if targets are directories.
     fs::path oldDir(TO_PATH(nonopt_args[0]));
     fs::path newDir(TO_PATH(nonopt_args[1]));
@@ -117,5 +110,35 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    if (eopt_available) {
+        fs::path execDir(argv[0]);
+#ifdef WINDOWS
+        std::string baseExec =
+            TO_STR(execDir.parent_path());
+        baseExec += "selfapply.exe";
+        std::string outputExec = nonopt_args[2] + ".exe";
+#else
+        std::string baseExec =
+            TO_STR(execDir.parent_path());
+        baseExec += "selfapply";
+        std::string outputExec = nonopt_args[2] + ".out";
+#endif
+        // copy file to set attributes.
+        try {
+            fs::copy(
+                fs::path(TO_PATH(baseExec)),
+                fs::path(TO_PATH(outputExec)));
+        } catch (const fs::filesystem_error& ex) {
+            std::cerr << "cannot create " << outputExec << std::endl;
+            return 1;
+        }
+
+        if (!ResourceAttacher::attach(
+            baseExec, outputExec, nonopt_args[2])) {
+            std::cerr << "cannot attach resource to " << outputExec
+                << std::endl;
+            return 1;
+        }
+    }
     return 0;
 }

@@ -13,6 +13,7 @@ add_library(patchfile STATIC
     FileList.cc
     PatchFile.cc
     PlainPatchFile.cc
+    ResourceAttacher.cc
 )
 
 if(WINDOWS)
