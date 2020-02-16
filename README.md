@@ -47,15 +47,15 @@ $ ./patchapply <適用先DIR> <パッチファイル>
 ### 例
 ```
 # 作成
-CMD> patchgen -e v1.00 v1.01 diff 
+CMD> patchgen -e v1.00 v1.01 diff_patch 
 CMD> dir
 ...
-2020/02/16  17:57         1,332,008 diff.exe
+2020/02/16  17:57         1,332,008 diff_patch.exe
 ...
 
 # 適用
 CMD> xcopy v1.00 patch_test
-CMD> diff patch_test
+CMD> diff_patch patch_test
 # patch_testの中身がv1.00からv1.01に変わります
 ```
 
