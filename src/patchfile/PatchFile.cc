@@ -177,7 +177,7 @@ void PatchFile::writeUpdateFile(File* file) {
 }
 
 bool PatchFile::apply(const std::string& targetDir, FILE* fp) {
-    fseeko(fp, 0, SEEK_SET);
+    fseeko(fp, fileOffset, SEEK_SET);
 
     // 0) skip signature.
     char dummy[16] = { 0 };
@@ -210,7 +210,7 @@ bool PatchFile::apply(const std::string& targetDir, FILE* fp) {
 
 bool PatchFile::readFileInfo(FILE* fp, FileList* fileList) {
     // move pointer to head.
-    if (fseeko(fp, sizeof(signature), SEEK_SET) != 0) {
+    if (fseeko(fp, fileOffset + sizeof(signature), SEEK_SET) != 0) {
         return false;
     }
 
@@ -347,7 +347,7 @@ bool PatchFile::applyFiles(FILE* fp, const FileList& fileList) {
         } else {
             if (entry.isAdd) {
                 std::string filePath = fileList.rootDir + "/" + entry.name;
-                fseeko(fp, entry.filePos, SEEK_SET);
+                fseeko(fp, fileOffset + entry.filePos, SEEK_SET);
                 openReader(fp);
                 generateFile(filePath, entry);
                 closeReader();
@@ -361,7 +361,7 @@ bool PatchFile::applyFiles(FILE* fp, const FileList& fileList) {
                 }
             } else if (entry.isModify) {
                 std::string filePath = fileList.rootDir + "/" + entry.name;
-                fseeko(fp, entry.filePos, SEEK_SET);
+                fseeko(fp, fileOffset + entry.filePos, SEEK_SET);
                 openReader(fp);
                 updateFile(filePath, entry);
                 closeReader();

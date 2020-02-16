@@ -41,6 +41,24 @@ class PatchFileFactory {
 
         return nullptr;
     }
+
+    /**
+     * factory method from file pointer.
+     */
+    static PatchFile* fromFilePointer(FILE* fp, uint64_t offset) {
+        char signature[16];
+        fseeko(fp, offset, SEEK_SET);
+        fread(signature, sizeof(char), sizeof(signature), fp);
+        std::string strSignature = signature;
+
+        if (strSignature.substr(0, 5) == "PLAIN") {
+            return new PlainPatchFile();
+        } else if (strSignature.substr(0, 5) == "BZIP2") {
+            return new BZip2PatchFile();
+        }
+
+        return nullptr;
+    }
 };
 
 #endif  // SRC_PATCHFILE_PATCHFILEFACTORY_H_

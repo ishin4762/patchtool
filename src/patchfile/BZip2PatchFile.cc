@@ -93,6 +93,19 @@ bool BZip2PatchFile::decode(
     return true;
 }
 
+bool BZip2PatchFile::decode(
+    const std::string& targetDir,
+    FILE *fp,
+    const uint64_t offset) {
+
+    // read file.
+    fileOffset = offset;
+    bool ret = apply(targetDir, fp);
+
+    // finish.
+    return ret;
+}
+
 bool BZip2PatchFile::openWriter(FILE* fp) {
     // initialize bzWriter
     int bz2err = 0;

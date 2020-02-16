@@ -22,11 +22,16 @@ class PatchFile {
     virtual bool decode(
         const std::string& targetDir,
         const std::string& input) = 0;
+    virtual bool decode(
+        const std::string& targetDir,
+        FILE *fp,
+        const uint64_t offset) = 0;
 
  protected:
     bsdiff_stream writeStream;
     bspatch_stream readStream;
     char signature[16] = { 0 };
+    uint64_t fileOffset = 0;
 
     virtual bool openWriter(FILE* fp) = 0;
     virtual bool closeWriter() = 0;
