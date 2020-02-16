@@ -113,12 +113,14 @@ int main(int argc, char* argv[]) {
     if (eopt_available) {
         fs::path execDir(argv[0]);
 #ifdef WINDOWS
-        const std::string baseExec =
-            TO_STR(execDir.parent_path()) + "selfapply.exe";
+        std::string baseExec =
+            TO_STR(execDir.parent_path());
+        baseExec += "selfapply.exe";
         std::string outputExec = nonopt_args[2] + ".exe";
 #else
-        const std::string baseExec =
-            TO_STR(execDir.parent_path()) + "selfapply";
+        std::string baseExec =
+            TO_STR(execDir.parent_path());
+        baseExec += "selfapply";
         std::string outputExec = nonopt_args[2] + ".out";
 #endif
         // copy file to set attributes.
