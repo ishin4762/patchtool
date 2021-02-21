@@ -59,7 +59,7 @@ if [[ "$PUSH" == "push" ]]; then
     git config --global user.name "ishin4762"
     mkdir __git_repo
     cd __git_repo
-    git clone git@github.com:ishin4762/patchtool
+    git clone https://${GITHUB_TOKEN}@github.com/ishin4762/patchtool.git
     cd patchtool
     cp ../../dist/${ARCH}/* ./dist/${ARCH}/
     git add ./dist/${ARCH}
