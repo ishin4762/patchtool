@@ -84,4 +84,4 @@ script:
     cd .. ; fi
 
 after_success:
-  - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then GITHUB_TOKEN=${GITHUB_TOKEN} TRAVIS_BRANCH=${TRAVIS_BRANCH} TRAVIS_JOB_NUMBER=${TRAVIS_JOB_NUMBER} encrypted_61dd9981ab75_key=${encrypted_61dd9981ab75_key} ./deploy.sh $RELEASE push ; fi
+  - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then GITHUB_TOKEN=${GITHUB_TOKEN} TRAVIS_BRANCH=${TRAVIS_BRANCH} TRAVIS_JOB_NUMBER=${TRAVIS_JOB_NUMBER} TRAVIS_REPO_SLUG=${TRAVIS_REPO_SLUG} ./deploy.sh $RELEASE push ; fi
