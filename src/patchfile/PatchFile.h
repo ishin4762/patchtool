@@ -54,7 +54,11 @@ class PatchFile {
 
     bool readFileInfo(FILE* fp, FileList* fileList);
     bool validateFiles(const FileList& fileList);
-    bool applyFiles(FILE* fp, const FileList& fileList);
+    bool applyFiles(
+        FILE* fp, const FileList& fileList, const std::string& suffix);
+    bool cleanupFiles(
+        const std::string& baseDir,
+        const std::string& suffix, bool isSucceeded);
     bool generateFile(const std::string& writePath, const File& file);
     bool updateFile(const std::string& writePath, const File& file);
 
@@ -62,6 +66,9 @@ class PatchFile {
         const std::string& readPath, uint8_t** buf, uint64_t* size);
     bool writeRawFile(
         const std::string& writePath, uint8_t* buf, uint64_t size);
+
+    const std::string generateSuffix();
+    bool stringEndsWith(const std::string& str, const std::string& suffix);
 };
 
 #endif  // SRC_PATCHFILE_PATCHFILE_H_
