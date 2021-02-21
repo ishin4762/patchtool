@@ -3,6 +3,7 @@
 #define SRC_PATCHFILE_PATCHFILE_H_
 
 #include <string>
+#include <unordered_map>
 #include "FileList.h"
 
 extern "C" {
@@ -69,6 +70,11 @@ class PatchFile {
 
     const std::string generateSuffix();
     bool stringEndsWith(const std::string& str, const std::string& suffix);
+    const std::string trimSuffix(
+        const std::string& str, const std::string& suffix);
+    std::string applyNameMap(
+        const std::unordered_map<std::string, std::string>& map,
+        const std::string& before, const std::string& suffix);
 };
 
 #endif  // SRC_PATCHFILE_PATCHFILE_H_

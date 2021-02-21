@@ -80,13 +80,7 @@ void FileList::search(
 #endif
 
 #ifdef FS_EXPERIMENTAL
-        if (fs::is_directory(entry)) {
-            search(
-                TO_STR(entry.path()),
-                isHiddenSearch,
-                isCheckIgnore,
-                reIgnorePattern);
-        } else if (fs::is_regular_file(entry)) {
+        if (fs::is_regular_file(entry) || fs::is_directory(entry)) {
             File file;
             fs::path basePath(rootDir);
             // calc relative path from rootDir
@@ -100,17 +94,19 @@ void FileList::search(
             file.isDirectory =
                 entry.status().type() == fs::file_type::directory;
             files.push_back(file);
+
+            if (fs::is_directory(entry)) {
+                search(
+                    TO_STR(entry.path()),
+                    isHiddenSearch,
+                    isCheckIgnore,
+                    reIgnorePattern);
+            }
         } else {
             std::cout << "skip(unknown status): " << filename << std::endl;
         }
 #else
-        if (entry.is_directory()) {
-            search(
-                TO_STR(entry.path()),
-                isHiddenSearch,
-                isCheckIgnore,
-                reIgnorePattern);
-        } else if (entry.is_regular_file()) {
+        if (entry.is_regular_file() || fs::is_directory(entry)) {
             File file;
             fs::path basePath(rootDir);
             file.name = TO_STR(fs::relative(entry.path(), basePath));
@@ -118,6 +114,14 @@ void FileList::search(
             file.isDirectory =
                 entry.status().type() == fs::file_type::directory;
             files.push_back(file);
+
+            if (entry.is_directory()) {
+                search(
+                    TO_STR(entry.path()),
+                    isHiddenSearch,
+                    isCheckIgnore,
+                    reIgnorePattern);
+            }
         } else {
             std::cout << "skip(unknown status): " << filename << std::endl;
         }
@@ -211,7 +215,10 @@ FileList FileList::calcDiff(
             File fileNew = *newItr;
             fileNew.isAdd = true;
             fileNew.newFilename = fileNew.fullFilename;
-            fileNew.fileNewSize = fs::file_size(TO_PATH(fileNew.fullFilename));
+            if (!newItr->isDirectory) {
+                fileNew.fileNewSize =
+                    fs::file_size(TO_PATH(fileNew.fullFilename));
+            }
             fileList.files.push_back(fileNew);
             newItr++;
         }
