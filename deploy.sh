@@ -37,8 +37,6 @@ function refresh_dist() {
         cp build/src/cli/patchgen.exe dist/${ARCH}/
         cp build/src/cli/patchapply.exe dist/${ARCH}/
         cp build/src/cli/selfapply.exe dist/${ARCH}/
-        # in order to escape win binary push simultaneously
-        sleep 10
     fi
 
     if [[ "$ARCH" == "macos" ]]; then
@@ -54,6 +52,12 @@ generate_license
 
 # push
 if [[ "$PUSH" == "push" ]]; then
+
+    if [[ "$ARCH" == "win32" ]]; then
+        # in order to escape win binary push simultaneously
+        sleep 30
+    fi
+
     git checkout ${TRAVIS_BRANCH}
     git pull https://${GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git ${TRAVIS_BRANCH}
     refresh_dist
