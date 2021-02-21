@@ -52,7 +52,8 @@ generate_license
 
 # push
 if [[ "$PUSH" == "push" ]]; then
-    git checkout master
+    git checkout ${TRAVIS_BRANCH}
+    git pull https://${GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git ${TRAVIS_BRANCH}
     git add ./dist/${ARCH}
     git commit -m "[ci skip] commit by Travis CI (JOB ${TRAVIS_JOB_NUMBER})"
     git push https://${GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git ${TRAVIS_BRANCH}
