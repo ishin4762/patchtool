@@ -52,18 +52,8 @@ generate_license
 
 # push
 if [[ "$PUSH" == "push" ]]; then
-    openssl aes-256-cbc -K $encrypted_61dd9981ab75_key -iv $encrypted_61dd9981ab75_iv -in travis_key.enc -out ~/.ssh/id_rsa -d
-    chmod 600 ~/.ssh/id_rsa    
-    echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
-    git config --global user.email "brokendesk0206@gmail.com"
-    git config --global user.name "ishin4762"
-    mkdir __git_repo
-    cd __git_repo
-    git clone https://${GITHUB_TOKEN}@github.com/ishin4762/patchtool.git
-    cd patchtool
-    cp ../../dist/${ARCH}/* ./dist/${ARCH}/
+    git checkout master
     git add ./dist/${ARCH}
     git commit -m "[ci skip] commit by Travis CI (JOB ${TRAVIS_JOB_NUMBER})"
-    git push origin ${TRAVIS_BRANCH}
+    git push https://${GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git ${TRAVIS_BRANCH}
 fi
-
