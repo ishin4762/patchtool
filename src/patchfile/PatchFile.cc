@@ -7,6 +7,9 @@ extern "C" {
 }
 #include <cstring>
 #include <iostream>
+#include <random>
+#include <ctime>
+#include <iomanip>
 #include "PatchFile.h"
 
 /**
@@ -199,13 +202,23 @@ bool PatchFile::apply(const std::string& targetDir, FILE* fp) {
         return false;
     }
 
+    std::string suffix = generateSuffix();
+
     // 3) apply.
     std::cout << "Applying..." << std::endl;
-    if (!applyFiles(fp, fileList)) {
+    bool isSucceeded = applyFiles(fp, fileList, suffix);
+
+    // 4) cleanup.
+    if (isSucceeded) {
+        std::cout << "Cleanup..." << std::endl;
+    } else {
+        std::cout << "Rollback..." << std::endl;
+    }
+    if (!cleanupFiles(targetDir, suffix, isSucceeded)) {
         return false;
     }
 
-    return true;
+    return isSucceeded;
 }
 
 bool PatchFile::readFileInfo(FILE* fp, FileList* fileList) {
@@ -316,19 +329,24 @@ bool PatchFile::validateFiles(const FileList& fileList) {
     return true;
 }
 
-
-bool PatchFile::applyFiles(FILE* fp, const FileList& fileList) {
+bool PatchFile::applyFiles(
+    FILE* fp, const FileList& fileList, const std::string& suffix) {
     if (fileList.rootDir.empty()) {
         std::cerr << "invalid target dir." << std::endl;
         return false;
     }
 
+    std::unordered_map<std::string, std::string> nameMap;
+
     for (auto& entry : fileList.files) {
         std::cout << entry.name << std::endl;
-
         if (entry.isDirectory) {
             if (entry.isAdd) {
-                std::string filePath = fileList.rootDir + "/" + entry.name;
+                std::string renamedName = applyNameMap(
+                    nameMap, entry.name, suffix + ".add");
+                nameMap[entry.name] = renamedName;
+                std::string filePath =
+                    fileList.rootDir + "/" + renamedName;
                 try {
                     fs::create_directory(TO_PATH(filePath));
                 } catch (fs::filesystem_error& ex) {
@@ -336,9 +354,16 @@ bool PatchFile::applyFiles(FILE* fp, const FileList& fileList) {
                     return false;
                 }
             } else if (entry.isRemove) {
-                std::string filePath = fileList.rootDir + "/" + entry.name;
+                std::string beforeName = applyNameMap(
+                    nameMap, entry.name, "");
+                std::string afterName = applyNameMap(
+                    nameMap, entry.name, suffix + ".remove");
+                nameMap[entry.name] = afterName;
+                std::string filePath = fileList.rootDir + "/" + beforeName;
+                std::string workingFilePath =
+                    fileList.rootDir + "/" + afterName;
                 try {
-                    fs::remove_all(TO_PATH(filePath));
+                    fs::rename(TO_PATH(filePath), TO_PATH(workingFilePath));
                 } catch (fs::filesystem_error& ex) {
                     std::cerr << "cannot remove " << entry.name << std::endl;
                     return false;
@@ -346,29 +371,174 @@ bool PatchFile::applyFiles(FILE* fp, const FileList& fileList) {
             }
         } else {
             if (entry.isAdd) {
-                std::string filePath = fileList.rootDir + "/" + entry.name;
+                std::string renamedName = applyNameMap(
+                    nameMap, entry.name, suffix + ".add");
+                std::string filePath =
+                    fileList.rootDir + "/" + renamedName;
                 fseeko(fp, fileOffset + entry.filePos, SEEK_SET);
                 openReader(fp);
                 generateFile(filePath, entry);
                 closeReader();
             } else if (entry.isRemove) {
-                std::string filePath = fileList.rootDir + "/" + entry.name;
+                std::string beforeName = applyNameMap(
+                    nameMap, entry.name, "");
+                std::string afterName = applyNameMap(
+                    nameMap, entry.name, suffix + ".remove");
+                std::string filePath =
+                    fileList.rootDir + "/" + beforeName;
+                std::string workingFilePath =
+                    fileList.rootDir + "/" + afterName;
                 try {
-                    fs::remove(TO_PATH(filePath));
+                    fs::rename(TO_PATH(filePath), TO_PATH(workingFilePath));
                 } catch (fs::filesystem_error& ex) {
                     std::cerr << "cannot remove " << entry.name << std::endl;
                     return false;
                 }
             } else if (entry.isModify) {
-                std::string filePath = fileList.rootDir + "/" + entry.name;
+                std::string beforeName = applyNameMap(
+                    nameMap, entry.name, "");
+                std::string afterName = applyNameMap(
+                    nameMap, entry.name, suffix + ".modify");
+                std::string filePath =
+                    fileList.rootDir + "/" + beforeName;
+                std::string workingFilePath =
+                    fileList.rootDir + "/" + afterName;
+                try {
+                    fs::copy_file(TO_PATH(filePath), TO_PATH(workingFilePath));
+                } catch (fs::filesystem_error& ex) {
+                    std::cerr << "cannot modify " << entry.name << std::endl;
+                    return false;
+                }
+
                 fseeko(fp, fileOffset + entry.filePos, SEEK_SET);
                 openReader(fp);
-                updateFile(filePath, entry);
+                updateFile(workingFilePath, entry);
                 closeReader();
             }
         }
     }
 
+    return true;
+}
+
+bool PatchFile::cleanupFiles(
+    const std::string& baseDir,
+    const std::string& suffix, bool isSucceeded) {
+
+    for (auto& entry : fs::directory_iterator(baseDir)) {
+        const std::string& path = TO_STR(entry.path());
+        if (fs::is_directory(entry)) {
+            // call recursively
+            bool ret = cleanupFiles(path, suffix, isSucceeded);
+            if (!ret) {
+                return false;
+            }
+
+            if (isSucceeded) {
+                if (stringEndsWith(path, suffix + ".add")) {
+                    std::string targetPath =
+                        trimSuffix(path, suffix + ".add");
+                    try {
+                        fs::rename(TO_PATH(path), TO_PATH(targetPath));
+                    } catch (fs::filesystem_error& ex) {
+                        std::cerr << "cannot rename "
+                            << path << " to " << targetPath << std::endl;
+                        return false;
+                    }
+                } else if (stringEndsWith(path, suffix + ".remove")) {
+                    try {
+                        fs::remove(TO_PATH(path));
+                    } catch (fs::filesystem_error& ex) {
+                        // continue because of users' appended files
+                        std::cerr << "cannot remove " << path << std::endl;
+                    }
+                }
+            } else {
+                if (stringEndsWith(path, suffix + ".add")) {
+                    try {
+                        fs::remove(TO_PATH(path));
+                    } catch (fs::filesystem_error& ex) {
+                        std::cerr << "cannot remove " << path << std::endl;
+                        return false;
+                    }
+                } else if (stringEndsWith(path, suffix + ".remove")) {
+                    std::string targetPath =
+                        trimSuffix(path, suffix + ".remove");
+                    try {
+                        fs::rename(TO_PATH(path), TO_PATH(targetPath));
+                    } catch (fs::filesystem_error& ex) {
+                        std::cerr << "cannot rename " << path << std::endl;
+                        return false;
+                    }
+                }
+            }
+        } else {
+            if (isSucceeded) {
+                if (stringEndsWith(path, suffix + ".add")) {
+                    std::string targetPath =
+                        trimSuffix(path, suffix + ".add");
+                    try {
+                        fs::rename(TO_PATH(path), TO_PATH(targetPath));
+                    } catch (fs::filesystem_error& ex) {
+                        std::cerr << "cannot rename "
+                            << path << " to " << targetPath << std::endl;
+                        return false;
+                    }
+                } else if (stringEndsWith(path, suffix + ".remove")) {
+                    try {
+                        fs::remove(TO_PATH(path));
+                    } catch (fs::filesystem_error& ex) {
+                        std::cerr << "cannot remove " << path << std::endl;
+                        return false;
+                    }
+                } else if (stringEndsWith(path, suffix + ".modify")) {
+                    std::string targetPath =
+                        trimSuffix(path, suffix + ".modify");
+                    std::string tempPath =
+                        targetPath + suffix + ".bak";
+                    try {
+                        fs::rename(TO_PATH(targetPath), TO_PATH(tempPath));
+                    } catch (fs::filesystem_error& ex) {
+                        std::cerr << "cannot rename "
+                            << targetPath << " to " << tempPath << std::endl;
+                        return false;
+                    }
+                    try {
+                        fs::rename(TO_PATH(path), TO_PATH(targetPath));
+                    } catch (fs::filesystem_error& ex) {
+                        std::cerr << "cannot rename "
+                            << path << " to " << targetPath << std::endl;
+                        return false;
+                    }
+                    try {
+                        fs::remove(TO_PATH(tempPath));
+                    } catch (fs::filesystem_error& ex) {
+                        std::cerr << "cannot remove " << tempPath << std::endl;
+                        return false;
+                    }
+                }
+            } else {
+                if (stringEndsWith(path, suffix + ".add")
+                    || stringEndsWith(path, suffix + ".modify")) {
+                    try {
+                        fs::remove(TO_PATH(path));
+                    } catch (fs::filesystem_error& ex) {
+                        std::cerr << "cannot remove " << path << std::endl;
+                        return false;
+                    }
+                } else if (stringEndsWith(path, suffix + ".remove")) {
+                    std::string targetPath =
+                        trimSuffix(path, suffix + ".remove");
+                    try {
+                        fs::rename(TO_PATH(path), TO_PATH(targetPath));
+                    } catch (fs::filesystem_error& ex) {
+                        std::cerr << "cannot rename " << path << std::endl;
+                        return false;
+                    }
+                }
+            }
+        }
+    }
     return true;
 }
 
@@ -503,4 +673,45 @@ bool PatchFile::writeRawFile(
 
     fclose(fp);
     return ret;
+}
+
+const std::string PatchFile::generateSuffix() {
+    auto time = std::time(nullptr);
+    std::random_device rnd;
+    std::stringstream ss;
+    ss << std::string(".") << std::put_time(std::gmtime(&time), "%Y%m%d%H%M%S")
+        << "." << std::to_string(rnd());
+    return ss.str();
+}
+
+bool PatchFile::stringEndsWith(
+    const std::string& str, const std::string& suffix) {
+    if (str.size() < suffix.size()) {
+        return false;
+    }
+    return std::equal(std::rbegin(suffix), std::rend(suffix), std::rbegin(str));
+}
+
+const std::string PatchFile::trimSuffix(
+    const std::string& str, const std::string& suffix) {
+    if (!stringEndsWith(str, suffix)) {
+        return str;
+    }
+    return str.substr(0, str.find(suffix, str.size() - suffix.size()));
+}
+
+std::string PatchFile::applyNameMap(
+    const std::unordered_map<std::string, std::string>& map,
+    const std::string& before, const std::string& suffix) {
+    int hitLength = 0;
+    std::string output = before + suffix;
+    for (auto& kv : map) {
+        if (before.find(kv.first) == 0) {
+            if (hitLength < kv.first.length()) {
+                hitLength = kv.first.length();
+                output = kv.second + before.substr(kv.first.length()) + suffix;
+            }
+        }
+    }
+    return output;
 }
