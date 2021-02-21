@@ -24,28 +24,30 @@ function generate_license() {
     cat src/lib/bsdiff/LICENSE >> $OUTFILE
 }
 
-if [[ "$ARCH" == "win64" ]]; then
-    rm -r dist/${ARCH}/*
-    cp build/src/cli/patchgen.exe dist/${ARCH}/
-    cp build/src/cli/patchapply.exe dist/${ARCH}/
-    cp build/src/cli/selfapply.exe dist/${ARCH}/
-fi
+function refresh_dist() {
+    if [[ "$ARCH" == "win64" ]]; then
+        rm -r dist/${ARCH}/*
+        cp build/src/cli/patchgen.exe dist/${ARCH}/
+        cp build/src/cli/patchapply.exe dist/${ARCH}/
+        cp build/src/cli/selfapply.exe dist/${ARCH}/
+    fi
 
-if [[ "$ARCH" == "win32" ]]; then
-    rm -r dist/${ARCH}/*
-    cp build/src/cli/patchgen.exe dist/${ARCH}/
-    cp build/src/cli/patchapply.exe dist/${ARCH}/
-    cp build/src/cli/selfapply.exe dist/${ARCH}/
-    # in order to escape win binary push simultaneously
-    sleep 10
-fi
+    if [[ "$ARCH" == "win32" ]]; then
+        rm -r dist/${ARCH}/*
+        cp build/src/cli/patchgen.exe dist/${ARCH}/
+        cp build/src/cli/patchapply.exe dist/${ARCH}/
+        cp build/src/cli/selfapply.exe dist/${ARCH}/
+        # in order to escape win binary push simultaneously
+        sleep 10
+    fi
 
-if [[ "$ARCH" == "macos" ]]; then
-    rm -r dist/${ARCH}/*
-    cp build/src/cli/patchgen dist/${ARCH}/
-    cp build/src/cli/patchapply dist/${ARCH}/
-    cp build/src/cli/selfapply dist/${ARCH}/
-fi
+    if [[ "$ARCH" == "macos" ]]; then
+        rm -r dist/${ARCH}/*
+        cp build/src/cli/patchgen dist/${ARCH}/
+        cp build/src/cli/patchapply dist/${ARCH}/
+        cp build/src/cli/selfapply dist/${ARCH}/
+    fi
+}
 
 # generate texts
 generate_license
@@ -54,6 +56,7 @@ generate_license
 if [[ "$PUSH" == "push" ]]; then
     git checkout ${TRAVIS_BRANCH}
     git pull https://${GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git ${TRAVIS_BRANCH}
+    refresh_dist
     git add ./dist/${ARCH}
     git commit -m "[ci skip] commit by Travis CI (JOB ${TRAVIS_JOB_NUMBER})"
     git push https://${GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git ${TRAVIS_BRANCH}
