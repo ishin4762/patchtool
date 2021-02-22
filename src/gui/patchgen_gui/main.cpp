@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
     QString locale = QLocale::system().name();
     QTranslator tra;
     if (locale.compare("ja_JP") == 0) {
-        tra.load("patchgen_gui_" + locale + ".qm", qApp->applicationDirPath());
+        tra.load("patchgen_gui_" + locale);
         a.installTranslator(&tra);
     }
 

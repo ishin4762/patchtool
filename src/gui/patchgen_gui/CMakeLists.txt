@@ -15,14 +15,14 @@ find_package(Qt5 COMPONENTS Widgets LinguistTools REQUIRED)
 
 set(TS_FILES patchgen_gui_ja_JP.ts)
 
+qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
+
 add_executable(patchgen_gui
   main.cpp
   mainwindow.cpp
   mainwindow.h
   mainwindow.ui
-  ${TS_FILES}
+  ${QM_FILES}
 )
 
 target_link_libraries(patchgen_gui Qt5::Widgets)
-
-qt5_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
