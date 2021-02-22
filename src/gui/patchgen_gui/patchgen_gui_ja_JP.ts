@@ -13,13 +13,13 @@
         <location filename="mainwindow.ui" line="48"/>
         <location filename="../../../build/src/gui/patchgen_gui/patchgen_gui_autogen/include/ui_mainwindow.h" line="127"/>
         <source>Patch file</source>
-        <translation type="unfinished"></translation>
+        <translation>パッチファイル</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="60"/>
         <location filename="../../../build/src/gui/patchgen_gui/patchgen_gui_autogen/include/ui_mainwindow.h" line="128"/>
         <source>executable</source>
-        <translation type="unfinished"></translation>
+        <translation>自己解凍形式</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="76"/>
@@ -35,37 +35,37 @@
         <location filename="mainwindow.ui" line="92"/>
         <location filename="../../../build/src/gui/patchgen_gui/patchgen_gui_autogen/include/ui_mainwindow.h" line="130"/>
         <source>Output patchfile location:</source>
-        <translation type="unfinished"></translation>
+        <translation>差分パッチ出力先:</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="119"/>
         <location filename="../../../build/src/gui/patchgen_gui/patchgen_gui_autogen/include/ui_mainwindow.h" line="131"/>
         <source>Sources</source>
-        <translation type="unfinished"></translation>
+        <translation>差分生成元データ</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="131"/>
         <location filename="../../../build/src/gui/patchgen_gui/patchgen_gui_autogen/include/ui_mainwindow.h" line="132"/>
         <source>Older version directory:</source>
-        <translation type="unfinished"></translation>
+        <translation>旧バージョンのディレクトリ:</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="177"/>
         <location filename="../../../build/src/gui/patchgen_gui/patchgen_gui_autogen/include/ui_mainwindow.h" line="134"/>
         <source>Newer version directory:</source>
-        <translation type="unfinished"></translation>
+        <translation>新バージョンのディレクトリ:</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="204"/>
         <location filename="../../../build/src/gui/patchgen_gui/patchgen_gui_autogen/include/ui_mainwindow.h" line="136"/>
         <source>Create</source>
-        <translation type="unfinished"></translation>
+        <translation>作成</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="220"/>
         <location filename="../../../build/src/gui/patchgen_gui/patchgen_gui_autogen/include/ui_mainwindow.h" line="137"/>
         <source>Log:</source>
-        <translation type="unfinished"></translation>
+        <translation>ログ:</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="245"/>
@@ -80,27 +80,27 @@ p, li { white-space: pre-wrap; }
     <message>
         <location filename="mainwindow.cpp" line="24"/>
         <source>Choose patch file location</source>
-        <translation type="unfinished"></translation>
+        <translation>差分パッチ出力先の指定</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="37"/>
         <source>Choose older version&apos;s directory location</source>
-        <translation type="unfinished"></translation>
+        <translation>旧バージョンのディレクトリの指定</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="50"/>
         <source>Choose new version&apos;s directory location</source>
-        <translation type="unfinished"></translation>
+        <translation>新バージョンのディレクトリの指定</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="62"/>
         <source>Warning</source>
-        <translation type="unfinished"></translation>
+        <translation>入力エラー</translation>
     </message>
     <message>
         <location filename="mainwindow.cpp" line="62"/>
         <source>Text boxes must be filled.</source>
-        <translation type="unfinished"></translation>
+        <translation>ファイルの出力元/出力先をすべて埋めてください。</translation>
     </message>
 </context>
 </TS>
