@@ -35,8 +35,6 @@ function refresh_dist() {
         cp build/src/cli/patchgen.exe dist/${ARCH}/
         cp build/src/cli/patchapply.exe dist/${ARCH}/
         cp build/src/cli/selfapply.exe dist/${ARCH}/
-        cp build/src/gui/patchgen_gui/patchgen_gui.exe dist/${ARCH}/
-        cp build/src/gui/patchgen_gui/patchgen_gui_*.qm dist/${ARCH}/
     fi
 
     if [[ "$ARCH" == "win32" ]]; then
@@ -44,8 +42,6 @@ function refresh_dist() {
         cp build/src/cli/patchgen.exe dist/${ARCH}/
         cp build/src/cli/patchapply.exe dist/${ARCH}/
         cp build/src/cli/selfapply.exe dist/${ARCH}/
-        cp build/src/gui/patchgen_gui/patchgen_gui.exe dist/${ARCH}/
-        cp build/src/gui/patchgen_gui/patchgen_gui_*.qm dist/${ARCH}/
     fi
 
     if [[ "$ARCH" == "macos" ]]; then
@@ -58,9 +54,6 @@ function refresh_dist() {
     fi
 }
 
-# generate texts
-generate_license
-
 # push
 if [[ "$PUSH" == "push" ]]; then
 
@@ -71,7 +64,10 @@ if [[ "$PUSH" == "push" ]]; then
 
     git checkout ${TRAVIS_BRANCH}
     git pull https://${GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git ${TRAVIS_BRANCH}
+
     refresh_dist
+    generate_license
+
     git add ./dist/${ARCH}
     git commit -m "[ci skip] commit by Travis CI (JOB ${TRAVIS_JOB_NUMBER})"
     git push https://${GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git ${TRAVIS_BRANCH}

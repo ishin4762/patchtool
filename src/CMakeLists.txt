@@ -7,4 +7,7 @@ set(CMAKE_CC_FLAGS "-s -O3")
 add_subdirectory(lib)
 add_subdirectory(patchfile)
 add_subdirectory(cli)
-add_subdirectory(gui)
+
+if (DEFINED GUI_COMPILE)
+    add_subdirectory(gui)
+endif()
