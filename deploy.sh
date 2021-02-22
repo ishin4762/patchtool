@@ -22,33 +22,34 @@ function generate_license() {
     echo -e "\n---\n" >> $OUTFILE
     echo -e "bsdiff\n" >> $OUTFILE
     cat src/lib/bsdiff/LICENSE >> $OUTFILE
+
+    # bsdiff
+    echo -e "\n---\n" >> $OUTFILE
+    echo -e "DownloadProject\n" >> $OUTFILE
+    cat cmake/DownloadProject/LICENSE >> $OUTFILE
 }
 
 function refresh_dist() {
     if [[ "$ARCH" == "win64" ]]; then
-        rm -r dist/${ARCH}/*
         cp build/src/cli/patchgen.exe dist/${ARCH}/
         cp build/src/cli/patchapply.exe dist/${ARCH}/
         cp build/src/cli/selfapply.exe dist/${ARCH}/
     fi
 
     if [[ "$ARCH" == "win32" ]]; then
-        rm -r dist/${ARCH}/*
         cp build/src/cli/patchgen.exe dist/${ARCH}/
         cp build/src/cli/patchapply.exe dist/${ARCH}/
         cp build/src/cli/selfapply.exe dist/${ARCH}/
     fi
 
     if [[ "$ARCH" == "macos" ]]; then
-        rm -r dist/${ARCH}/*
         cp build/src/cli/patchgen dist/${ARCH}/
         cp build/src/cli/patchapply dist/${ARCH}/
         cp build/src/cli/selfapply dist/${ARCH}/
+        cp build/src/gui/patchgen_gui/patchgen_gui dist/${ARCH}/
+        cp build/src/gui/patchgen_gui/patchgen_gui_*.qm dist/${ARCH}/
     fi
 }
-
-# generate texts
-generate_license
 
 # push
 if [[ "$PUSH" == "push" ]]; then
@@ -60,7 +61,10 @@ if [[ "$PUSH" == "push" ]]; then
 
     git checkout ${TRAVIS_BRANCH}
     git pull https://${GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git ${TRAVIS_BRANCH}
+
     refresh_dist
+    generate_license
+
     git add ./dist/${ARCH}
     git commit -m "[ci skip] commit by Travis CI (JOB ${TRAVIS_JOB_NUMBER})"
     git push https://${GITHUB_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git ${TRAVIS_BRANCH}

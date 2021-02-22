@@ -87,5 +87,7 @@ int main(int argc, char* argv[]) {
     }
 
     fclose(fp);
+
+    std::cout << "succeeded." << std::endl;
     return 0;
 }
