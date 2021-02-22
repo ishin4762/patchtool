@@ -8,6 +8,6 @@ add_subdirectory(lib)
 add_subdirectory(patchfile)
 add_subdirectory(cli)
 
-if (DEFINED GUI_COMPILE)
+if (GUI_COMPILE)
     add_subdirectory(gui)
 endif()
