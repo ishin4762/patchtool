@@ -31,21 +31,18 @@ function generate_license() {
 
 function refresh_dist() {
     if [[ "$ARCH" == "win64" ]]; then
-        rm -r dist/${ARCH}/*
         cp build/src/cli/patchgen.exe dist/${ARCH}/
         cp build/src/cli/patchapply.exe dist/${ARCH}/
         cp build/src/cli/selfapply.exe dist/${ARCH}/
     fi
 
     if [[ "$ARCH" == "win32" ]]; then
-        rm -r dist/${ARCH}/*
         cp build/src/cli/patchgen.exe dist/${ARCH}/
         cp build/src/cli/patchapply.exe dist/${ARCH}/
         cp build/src/cli/selfapply.exe dist/${ARCH}/
     fi
 
     if [[ "$ARCH" == "macos" ]]; then
-        rm -r dist/${ARCH}/*
         cp build/src/cli/patchgen dist/${ARCH}/
         cp build/src/cli/patchapply dist/${ARCH}/
         cp build/src/cli/selfapply dist/${ARCH}/
