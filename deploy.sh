@@ -22,6 +22,11 @@ function generate_license() {
     echo -e "\n---\n" >> $OUTFILE
     echo -e "bsdiff\n" >> $OUTFILE
     cat src/lib/bsdiff/LICENSE >> $OUTFILE
+
+    # bsdiff
+    echo -e "\n---\n" >> $OUTFILE
+    echo -e "DownloadProject\n" >> $OUTFILE
+    cat cmake/DownloadProject/LICENSE >> $OUTFILE
 }
 
 function refresh_dist() {
@@ -30,6 +35,8 @@ function refresh_dist() {
         cp build/src/cli/patchgen.exe dist/${ARCH}/
         cp build/src/cli/patchapply.exe dist/${ARCH}/
         cp build/src/cli/selfapply.exe dist/${ARCH}/
+        cp build/src/gui/patchgen_gui/patchgen_gui.exe dist/${ARCH}/
+        cp build/src/gui/patchgen_gui/patchgen_gui_*.qm dist/${ARCH}/
     fi
 
     if [[ "$ARCH" == "win32" ]]; then
@@ -37,6 +44,8 @@ function refresh_dist() {
         cp build/src/cli/patchgen.exe dist/${ARCH}/
         cp build/src/cli/patchapply.exe dist/${ARCH}/
         cp build/src/cli/selfapply.exe dist/${ARCH}/
+        cp build/src/gui/patchgen_gui/patchgen_gui.exe dist/${ARCH}/
+        cp build/src/gui/patchgen_gui/patchgen_gui_*.qm dist/${ARCH}/
     fi
 
     if [[ "$ARCH" == "macos" ]]; then
@@ -44,6 +53,8 @@ function refresh_dist() {
         cp build/src/cli/patchgen dist/${ARCH}/
         cp build/src/cli/patchapply dist/${ARCH}/
         cp build/src/cli/selfapply dist/${ARCH}/
+        cp build/src/gui/patchgen_gui/patchgen_gui.exe dist/${ARCH}/
+        cp build/src/gui/patchgen_gui/patchgen_gui_*.qm dist/${ARCH}/
     fi
 }
 
