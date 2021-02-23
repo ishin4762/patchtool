@@ -46,8 +46,6 @@ function refresh_dist() {
         cp build/src/cli/patchgen dist/${ARCH}/
         cp build/src/cli/patchapply dist/${ARCH}/
         cp build/src/cli/selfapply dist/${ARCH}/
-        cp build/src/gui/patchgen_gui/patchgen_gui dist/${ARCH}/
-        cp build/src/gui/patchgen_gui/patchgen_gui_*.qm dist/${ARCH}/
     fi
 }
 

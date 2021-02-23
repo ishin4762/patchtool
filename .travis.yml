@@ -41,20 +41,17 @@ matrix:
         - CROSSCOMPILE=native
         - CXX_COMPILER=g++-9
         - CC_COMPILER=gcc-9
-        - RELEASE=macos
-        - GUI_COMPILE=1     
+        - RELEASE=macos    
 branches:
   only:
   - master
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install gcc@9 | true ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install qt5 | true ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then export QTDIR=$(brew --prefix qt5); fi
 script:
   - if [[ "$CROSSCOMPILE" == "native" ]]; then mkdir build && 
     cd build && 
-    cmake .. -DCMAKE_C_COMPILER=${CC_COMPILER} -DCMAKE_CXX_COMPILER=${CXX_COMPILER} -DCMAKE_PREFIX_PATH=${QTDIR} && 
+    cmake .. -DCMAKE_C_COMPILER=${CC_COMPILER} -DCMAKE_CXX_COMPILER=${CXX_COMPILER} && 
     make && 
     cd .. ; fi
   - if [[ "$CROSSCOMPILE" == "i686-w64-mingw32" ]]; then mkdir build && 
@@ -64,7 +61,7 @@ script:
     echo "SET(CMAKE_CXX_COMPILER /usr/bin/i686-w64-mingw32-g++)" >> toolchain.cmake &&
     echo "SET(CMAKE_RC_COMPILER /usr/bin/i686-w64-mingw32-windres)" >> toolchain.cmake &&
     echo "SET(CMAKE_FIND_ROOT_PATH /usr/i686-w64-mingw32)" >> toolchain.cmake &&
-    cmake -DCMAKE_TOOLCHAIN_FILE=toolchain.cmake  -DWINDOWS=1 .. &&
+    cmake -DCMAKE_TOOLCHAIN_FILE=toolchain.cmake -DWINDOWS=1 .. &&
     make && 
     cd .. ; fi
   - if [[ "$CROSSCOMPILE" == "x86_64-w64-mingw32" ]]; then mkdir build && 
