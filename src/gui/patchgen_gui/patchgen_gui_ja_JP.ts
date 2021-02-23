@@ -5,19 +5,16 @@
     <name>MainWindow</name>
     <message>
         <location filename="mainwindow.ui" line="35"/>
-        <location filename="../../../build/src/gui/patchgen_gui/patchgen_gui_autogen/include/ui_mainwindow.h" line="126"/>
         <source>patchgen GUI ver. 0.2.0</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="48"/>
-        <location filename="../../../build/src/gui/patchgen_gui/patchgen_gui_autogen/include/ui_mainwindow.h" line="127"/>
         <source>Patch file</source>
         <translation>パッチファイル</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="60"/>
-        <location filename="../../../build/src/gui/patchgen_gui/patchgen_gui_autogen/include/ui_mainwindow.h" line="128"/>
         <source>executable</source>
         <translation>自己解凍形式</translation>
     </message>
@@ -25,51 +22,41 @@
         <location filename="mainwindow.ui" line="76"/>
         <location filename="mainwindow.ui" line="154"/>
         <location filename="mainwindow.ui" line="190"/>
-        <location filename="../../../build/src/gui/patchgen_gui/patchgen_gui_autogen/include/ui_mainwindow.h" line="129"/>
-        <location filename="../../../build/src/gui/patchgen_gui/patchgen_gui_autogen/include/ui_mainwindow.h" line="133"/>
-        <location filename="../../../build/src/gui/patchgen_gui/patchgen_gui_autogen/include/ui_mainwindow.h" line="135"/>
         <source>...</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="92"/>
-        <location filename="../../../build/src/gui/patchgen_gui/patchgen_gui_autogen/include/ui_mainwindow.h" line="130"/>
         <source>Output patchfile location:</source>
         <translation>差分パッチ出力先:</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="119"/>
-        <location filename="../../../build/src/gui/patchgen_gui/patchgen_gui_autogen/include/ui_mainwindow.h" line="131"/>
         <source>Sources</source>
         <translation>差分生成元データ</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="131"/>
-        <location filename="../../../build/src/gui/patchgen_gui/patchgen_gui_autogen/include/ui_mainwindow.h" line="132"/>
         <source>Older version directory:</source>
         <translation>旧バージョンのディレクトリ:</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="177"/>
-        <location filename="../../../build/src/gui/patchgen_gui/patchgen_gui_autogen/include/ui_mainwindow.h" line="134"/>
         <source>Newer version directory:</source>
         <translation>新バージョンのディレクトリ:</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="204"/>
-        <location filename="../../../build/src/gui/patchgen_gui/patchgen_gui_autogen/include/ui_mainwindow.h" line="136"/>
         <source>Create</source>
         <translation>作成</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="220"/>
-        <location filename="../../../build/src/gui/patchgen_gui/patchgen_gui_autogen/include/ui_mainwindow.h" line="137"/>
         <source>Log:</source>
         <translation>ログ:</translation>
     </message>
     <message>
         <location filename="mainwindow.ui" line="245"/>
-        <location filename="../../../build/src/gui/patchgen_gui/patchgen_gui_autogen/include/ui_mainwindow.h" line="138"/>
         <source>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }

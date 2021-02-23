@@ -154,6 +154,8 @@ FileList FileList::calcDiff(
                     // old directory is removed.
                     File fileOld = *oldItr;
                     fileOld.isRemove = true;
+                    fileOld.fileNewSize = 0;
+                    fileOld.oldFilename = fileOld.fullFilename;
                     // new file is added.
                     File fileNew = *newItr;
                     fileNew.isAdd = true;
@@ -173,9 +175,12 @@ FileList FileList::calcDiff(
                     // old file is removed.
                     File fileOld = *oldItr;
                     fileOld.isRemove = true;
+                    fileOld.fileNewSize = 0;
+                    fileOld.oldFilename = fileOld.fullFilename;
                     // new directory is added.
                     File fileNew = *newItr;
                     fileNew.isAdd = true;
+                    fileNew.fileNewSize = 0;
                     fileList.files.push_back(fileOld);
                     fileList.files.push_back(fileNew);
 
@@ -208,6 +213,8 @@ FileList FileList::calcDiff(
             // old file/directory is removed.
             File fileOld = *oldItr;
             fileOld.isRemove = true;
+            fileOld.fileNewSize = 0;
+            fileOld.oldFilename = fileOld.fullFilename;
             fileList.files.push_back(fileOld);
             oldItr++;
         } else {
@@ -218,6 +225,8 @@ FileList FileList::calcDiff(
             if (!newItr->isDirectory) {
                 fileNew.fileNewSize =
                     fs::file_size(TO_PATH(fileNew.fullFilename));
+            } else {
+                fileNew.fileNewSize = 0;
             }
             fileList.files.push_back(fileNew);
             newItr++;
@@ -238,6 +247,8 @@ FileList FileList::calcDiff(
         for (; oldItr != oldList.files.end(); oldItr++) {
             File fileOld = *oldItr;
             fileOld.isRemove = true;
+            fileOld.fileNewSize = 0;
+            fileOld.oldFilename = fileOld.fullFilename;
             fileList.files.push_back(fileOld);
         }
     }

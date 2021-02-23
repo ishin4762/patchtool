@@ -11,19 +11,7 @@ extern "C" {
 class BZip2PatchFile : public PatchFile {
  public:
     BZip2PatchFile();
-    bool encode(
-        const std::string& oldDir,
-        const std::string& newDir,
-        const std::string& output,
-        bool isHiddenSearch,
-        const std::string& ignorePattern);
-    bool decode(
-        const std::string& targetDir,
-        const std::string& input);
-    bool decode(
-            const std::string& targetDir,
-            FILE *fp,
-            const uint64_t offset);
+
  protected:
     bool openWriter(FILE* fp);
     bool closeWriter();

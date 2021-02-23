@@ -23,6 +23,10 @@ static void show_usage() {
         << "    -h, --add-hidden         : add hidden files."
         << std::endl
         << "    -i, --ignore pattern     : ignore regex pattern matched files."
+        << std::endl
+        << "    -b, --block size         : file split size (KB)."
+        << std::endl
+        << "    -v, --verbose            : verbose."
         << std::endl;
 }
 
@@ -36,7 +40,10 @@ int main(int argc, char* argv[]) {
     bool eopt_available = false;
     bool hopt_available = false;
     bool iopt_available = false;
+    bool bopt_available = false;
+    bool vopt_available = false;
     std::string ignore_param;
+    std::string block_param;
     std::vector<std::string> nonopt_args;
 
     struct option longopts[] = {
@@ -44,12 +51,14 @@ int main(int argc, char* argv[]) {
         {"executable",  no_argument,       NULL, 'e'},
         {"add-hidden",  no_argument,       NULL, 'h'},
         {"ignore",      required_argument, NULL, 'i'},
+        {"block",       required_argument, NULL, 'b'},
+        {"verbose",     no_argument,       NULL, 'v'},
         {0, 0, 0, 0}
     };
 
     // parse arguments.
     while ((opt = getopt_long(argc, argv,
-        "nehi:", longopts, &long_index)) != -1) {
+        "nehi:b:v", longopts, &long_index)) != -1) {
         switch (opt) {
         case 'n':
             nopt_available = true;
@@ -65,8 +74,16 @@ int main(int argc, char* argv[]) {
 
         case 'i':
             iopt_available = true;
-            std::cerr << optarg << std::endl;
             ignore_param = optarg;
+            break;
+
+        case 'b':
+            bopt_available = true;
+            block_param = optarg;
+            break;
+
+        case 'v':
+            vopt_available = true;
             break;
 
         default:
@@ -99,14 +116,37 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
+    // blocksize validation
+    uint32_t block_size = 65536;
+    if (bopt_available) {
+        try {
+            int tmp_block_size = std::stoi(block_param);
+            if (tmp_block_size < 0 || tmp_block_size > 65536) {
+                std::cout << "block size must be between 1 to 65536."
+                    << std::endl;
+                return 1;
+            }
+            block_size = static_cast<uint32_t>(tmp_block_size);
+        } catch (const std::exception& e) {
+            std::cout << "invalid block size param." << std::endl;
+            return 1;
+        }
+    }
+
     PatchFile *patchFile = PatchFileFactory::create(
         nopt_available ? "" : "bzip2");
+
+    if (vopt_available) {
+        std::cout <<
+            (nopt_available ? "plain mode." : "bzip2 mode.") << std::endl;
+        patchFile->setVerbose(true);
+    }
 
     // generate patch file.
     if (patchFile == nullptr
         || !patchFile->encode(
             nonopt_args[0], nonopt_args[1], nonopt_args[2],
-            hopt_available, ignore_param)) {
+            hopt_available, ignore_param, block_size)) {
         return 1;
     }
 
