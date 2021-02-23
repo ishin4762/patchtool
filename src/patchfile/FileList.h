@@ -14,6 +14,7 @@ namespace fs = std::filesystem;
 #include <regex>
 #include <string>
 #include <list>
+#include <vector>
 
 #ifdef WINDOWS
 #define TO_PATH(x) File::charsToWchars((x))
@@ -37,10 +38,15 @@ struct File {
     uint64_t fileNewSize;
     uint32_t checkSum;
 
+    uint64_t numBlocks;
+    std::vector<uint32_t> oldBlockSizeList;
+    std::vector<uint32_t> newBlockSizeList;
+    std::vector<uint32_t> diffBlockSizeList;
+
  public:
     File() :
         isDirectory(false), isAdd(false), isRemove(false), isModify(false),
-        filePos(0), fileSize(0), checkSum(0) {}
+        filePos(0), fileSize(0), checkSum(0), numBlocks(0) {}
 
     static bool isEqual(const File& file1, const File& file2);
 #ifdef WINDOWS

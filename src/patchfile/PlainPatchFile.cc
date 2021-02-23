@@ -44,64 +44,8 @@ PlainPatchFile::PlainPatchFile() {
     readStream.read = plain_read;
 
     // copy signature.
-    const char SIGNATURE[16] = "PLAIN ver.1.00";
+    const char SIGNATURE[16] = "PLAIN ver.1.01";
     memcpy(signature, SIGNATURE, sizeof(signature));
-}
-
-bool PlainPatchFile::encode(
-    const std::string& oldDir,
-    const std::string& newDir,
-    const std::string& output,
-    bool isHiddenSearch,
-    const std::string& ignorePattern) {
-
-    // search directory diff.
-    FileList diffList = searchDiff(
-        oldDir, newDir, isHiddenSearch, ignorePattern);
-
-    // write file.
-    FILE* file = fopen(output.c_str(), "wb");
-    if (file == nullptr) {
-        std::cerr << "cannot create " << output << std::endl;
-        return false;
-    }
-    create(file, &diffList);
-
-    // flush.
-    fclose(file);
-
-    return true;
-}
-
-bool PlainPatchFile::decode(
-    const std::string& targetDir,
-    const std::string& input) {
-
-    // read file.
-    FILE* file = fopen(input.c_str(), "rb");
-    if (file == nullptr) {
-        std::cerr << "cannot open " << input << std::endl;
-        return false;
-    }
-    bool ret = apply(targetDir, file);
-
-    // finish.
-    fclose(file);
-
-    return ret;
-}
-
-bool PlainPatchFile::decode(
-    const std::string& targetDir,
-    FILE *fp,
-    const uint64_t offset) {
-
-    // read file.
-    fileOffset = offset;
-    bool ret = apply(targetDir, fp);
-
-    // finish.
-    return ret;
 }
 
 bool PlainPatchFile::openWriter(FILE* fp) {
