@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.1)
 add_executable(FileListTest FileListTest.cc)
 target_link_libraries(
     FileListTest
-    patchfile
+    patchtool
     bsdiff
     bspatch
     bz2

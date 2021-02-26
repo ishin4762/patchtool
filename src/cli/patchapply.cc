@@ -5,7 +5,9 @@ extern "C" {
 #include <iostream>
 #include <string>
 #include <vector>
-#include "patchfile/PatchFileFactory.h"
+
+#include "lib/include/patchtool.h"
+#include "common.h"
 
 /**
  *  show usage.
@@ -25,8 +27,6 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    PatchFile *patchFile = PatchFileFactory::fromFile(argv[2]);
-
     std::string targetDir = argv[1];
     std::string lastChar = targetDir.substr(targetDir.size()-1, 1);
     if (lastChar == "/" || lastChar == "\\") {
@@ -34,8 +34,8 @@ int main(int argc, char* argv[]) {
     }
 
     // apply patch file.
-    if (patchFile == nullptr
-        || !patchFile->decode(targetDir, argv[2])) {
+    patchtool::Patch patch;
+    if (!patch.decode(targetDir, argv[2], false)) {
         std::cerr << "cannot apply patch." << std::endl;
         return 1;
     }

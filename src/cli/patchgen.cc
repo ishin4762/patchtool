@@ -5,8 +5,9 @@ extern "C" {
 #include <iostream>
 #include <string>
 #include <vector>
-#include "patchfile/PatchFileFactory.h"
-#include "patchfile/ResourceAttacher.h"
+
+#include "lib/include/patchtool.h"
+#include "common.h"
 
 /**
  *  show usage.
@@ -133,20 +134,22 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    PatchFile *patchFile = PatchFileFactory::create(
-        nopt_available ? "" : "bzip2");
-
     if (vopt_available) {
         std::cout <<
             (nopt_available ? "plain mode." : "bzip2 mode.") << std::endl;
-        patchFile->setVerbose(true);
     }
 
     // generate patch file.
-    if (patchFile == nullptr
-        || !patchFile->encode(
-            nonopt_args[0], nonopt_args[1], nonopt_args[2],
-            hopt_available, ignore_param, block_size)) {
+    patchtool::Patch patch;
+    if (!patch.encode(
+            nonopt_args[0],
+            nonopt_args[1],
+            nonopt_args[2],
+            nopt_available ? "" : "bzip2",
+            hopt_available,
+            ignore_param,
+            block_size,
+            vopt_available)) {
         return 1;
     }
 
@@ -185,7 +188,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        if (!ResourceAttacher::attach(
+        if (!patch.attach(
             baseExec, outputExec, nonopt_args[2])) {
             std::cerr << "cannot attach resource to " << outputExec
                 << std::endl;

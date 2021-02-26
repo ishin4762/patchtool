@@ -1,10 +1,9 @@
 // Copyright (C) 2020 ISHIN.
-#if WINDOWS
-#include <fileapi.h>
-#endif
-
 #include <iostream>
+
 #include "FileList.h"
+
+namespace patchtool {
 
 /**
  * internal compare function.
@@ -16,16 +15,10 @@ static bool __fileComp(const File& v1, const File& v2) {
     return false;
 }
 
-/**
- * sort filelist.
- */
 void FileList::sortAsc() {
     files.sort(__fileComp);
 }
 
-/**
- * dump FileList.
- */
 void FileList::dump() {
     for (const auto& entry : files) {
         if (entry.isDirectory) {
@@ -45,59 +38,37 @@ void FileList::dump() {
     }
 }
 
-std::regex reHiddenFiles("^\\..*");
-
-/**
- * search and enumerate files and dirs.
- */
 void FileList::search(
+    FileAccess* fileAccess,
     const std::string& path,
-        bool isHiddenSearch,
-        bool isCheckIgnore,
-        const std::regex& reIgnorePattern) {
-    for (const auto& entry : fs::directory_iterator(TO_PATH(path))) {
+    bool isHiddenSearch,
+    bool isCheckIgnore,
+    const std::regex& reIgnorePattern) {
+    for (const std::string& filename
+        : fileAccess->searchDirectory(path)) {
         // check ignore pattern
-        std::string filename = TO_STR(entry.path().filename());
         if (isCheckIgnore && std::regex_match(filename, reIgnorePattern)) {
             std::cout << "skip(ignore match): " << filename << std::endl;
             continue;
         }
 
-#if WINDOWS
         // check hidden pattern
-        uint32_t attr = GetFileAttributesA(TO_STR(entry.path()).c_str());
-        if (!isHiddenSearch && (attr & 0x2)) {
+        if (!isHiddenSearch && fileAccess->isHiddenFile(filename)) {
             std::cout << "skip(hidden file): " << filename << std::endl;
             continue;
         }
-#else
-        // check hidden pattern
-        if (!isHiddenSearch &&
-            std::regex_match(filename, reHiddenFiles)) {
-            std::cout << "skip(hidden file): " << filename << std::endl;
-            continue;
-        }
-#endif
 
-#ifdef FS_EXPERIMENTAL
-        if (fs::is_regular_file(entry) || fs::is_directory(entry)) {
+        if (fileAccess->isFile(filename) || fileAccess->isDirectory(filename)) {
             File file;
-            fs::path basePath(rootDir);
-            // calc relative path from rootDir
-            std::string relativePath =
-                (TO_STR(entry.path())).replace(0, TO_STR(basePath).size(), "");
-            if (relativePath.at(0) == '\\') {
-                relativePath.replace(0, 1, "");
-            }
-            file.name = relativePath;
-            file.fullFilename = TO_STR(entry.path());
-            file.isDirectory =
-                entry.status().type() == fs::file_type::directory;
+            file.name = fileAccess->getRelativePath(filename, rootDir);
+            file.fullFilename = filename;
+            file.isDirectory = fileAccess->isDirectory(filename);
             files.push_back(file);
 
-            if (fs::is_directory(entry)) {
+            if (fileAccess->isDirectory(filename)) {
                 search(
-                    TO_STR(entry.path()),
+                    fileAccess,
+                    filename,
                     isHiddenSearch,
                     isCheckIgnore,
                     reIgnorePattern);
@@ -105,35 +76,47 @@ void FileList::search(
         } else {
             std::cout << "skip(unknown status): " << filename << std::endl;
         }
-#else
-        if (entry.is_regular_file() || fs::is_directory(entry)) {
-            File file;
-            fs::path basePath(rootDir);
-            file.name = TO_STR(fs::relative(entry.path(), basePath));
-            file.fullFilename = TO_STR(entry.path());
-            file.isDirectory =
-                entry.status().type() == fs::file_type::directory;
-            files.push_back(file);
-
-            if (entry.is_directory()) {
-                search(
-                    TO_STR(entry.path()),
-                    isHiddenSearch,
-                    isCheckIgnore,
-                    reIgnorePattern);
-            }
-        } else {
-            std::cout << "skip(unknown status): " << filename << std::endl;
-        }
-#endif
     }
 }
 
-/**
- * calc diff between old-filelist and new-filelist
- */
+FileList FileList::searchDiff(
+    FileAccess* fileAccess,
+    const std::string& oldDir,
+    const std::string& newDir,
+    bool isHiddenSearch,
+    const std::string& ignorePattern) {
+
+    std::regex reIgnorePattern(ignorePattern);
+
+    FileList oldFileList, newFileList;
+    oldFileList.rootDir = oldDir;
+    oldFileList.search(
+        fileAccess,
+        oldDir,
+        isHiddenSearch,
+        !ignorePattern.empty(),
+        reIgnorePattern);
+    oldFileList.sortAsc();
+
+    newFileList.rootDir = newDir;
+    newFileList.search(
+        fileAccess,
+        newDir,
+        isHiddenSearch,
+        !ignorePattern.empty(),
+        reIgnorePattern);
+    newFileList.sortAsc();
+
+    FileList diffList = calcDiff(
+        fileAccess, oldFileList, newFileList);
+    diffList.dump();
+    return diffList;
+}
+
 FileList FileList::calcDiff(
-    const FileList& oldList, const FileList& newList) {
+    FileAccess* fileAccess,
+    const FileList& oldList,
+    const FileList& newList) {
     FileList fileList;
 
     auto oldItr = oldList.files.begin();
@@ -161,7 +144,7 @@ FileList FileList::calcDiff(
                     fileNew.isAdd = true;
                     fileNew.newFilename = fileNew.fullFilename;
                     fileNew.fileNewSize =
-                        fs::file_size(TO_PATH(fileNew.fullFilename));
+                        fileAccess->getFileSize(fileNew.fullFilename);
                     fileList.files.push_back(fileOld);
                     fileList.files.push_back(fileNew);
 
@@ -189,7 +172,8 @@ FileList FileList::calcDiff(
                 } else {
                     // new is file.
                     // check if two files are same.
-                    if (File::isEqual(*oldItr, *newItr)) {
+                    if (fileAccess->isFileEqual(
+                        oldItr->fullFilename, newItr->fullFilename)) {
                         // two file are same.
                         // skip.
                         oldItr++;
@@ -201,7 +185,7 @@ FileList FileList::calcDiff(
                         fileNew.newFilename = fileNew.fullFilename;
                         fileNew.oldFilename = oldItr->fullFilename;
                         fileNew.fileNewSize =
-                            fs::file_size(TO_PATH(fileNew.fullFilename));
+                            fileAccess->getFileSize(fileNew.fullFilename);
                         fileList.files.push_back(fileNew);
 
                         oldItr++;
@@ -224,7 +208,7 @@ FileList FileList::calcDiff(
             fileNew.newFilename = fileNew.fullFilename;
             if (!newItr->isDirectory) {
                 fileNew.fileNewSize =
-                    fs::file_size(TO_PATH(fileNew.fullFilename));
+                    fileAccess->getFileSize(fileNew.fullFilename);
             } else {
                 fileNew.fileNewSize = 0;
             }
@@ -239,7 +223,8 @@ FileList FileList::calcDiff(
             File fileNew = *newItr;
             fileNew.isAdd = true;
             fileNew.newFilename = fileNew.fullFilename;
-            fileNew.fileNewSize = fs::file_size(TO_PATH(fileNew.fullFilename));
+            fileNew.fileNewSize =
+                fileAccess->getFileSize(fileNew.fullFilename);
             fileList.files.push_back(fileNew);
         }
     } else if (oldItr != oldList.files.end() && newItr == newList.files.end()) {
@@ -254,58 +239,6 @@ FileList FileList::calcDiff(
     }
 
     return fileList;
-}
-
-/**
- * check if two files are same.
- */
-bool File::isEqual(const File& file1, const File& file2) {
-    FILE *fp1, *fp2;
-    const int BUFFER_SIZE = 1024;
-    char buf1[BUFFER_SIZE], buf2[BUFFER_SIZE];
-
-    fp1 = fopen(file1.fullFilename.c_str(), "rb");
-    if (fp1 == nullptr) {
-        std::cerr << "cannot open " << file1.fullFilename << std::endl;
-        return false;
-    }
-    fp2 = fopen(file2.fullFilename.c_str(), "rb");
-    if (fp2 == nullptr) {
-        std::cerr << "cannot open " << file2.fullFilename << std::endl;
-        fclose(fp1);
-        return false;
-    }
-
-    bool isEqual = true;
-    int readCount1, readCount2;
-    bool isContinue = true;
-    char *ptr1, *ptr2;
-    do {
-        readCount1 = fread(buf1, sizeof(char), BUFFER_SIZE, fp1);
-        readCount2 = fread(buf2, sizeof(char), BUFFER_SIZE, fp2);
-        isContinue = (readCount1 == BUFFER_SIZE) && (readCount2 == BUFFER_SIZE);
-        ptr1 = buf1;
-        ptr2 = buf2;
-        if (readCount1 == 0 && readCount2 > 0) {
-            isEqual = false;
-        }
-        while (readCount1-- > 0) {
-            if (readCount2-- == 0) {
-                isEqual = false;
-                break;
-            }
-            if (*ptr1++ != *ptr2++) {
-                isEqual = false;
-                isContinue = false;
-                break;
-            }
-        }
-    } while (isContinue);
-
-    fclose(fp1);
-    fclose(fp2);
-
-    return isEqual;
 }
 
 /**
@@ -329,39 +262,4 @@ void File::decodeFlags(uint16_t flags) {
     isModify = (flags & 0x08) >> 3;
 }
 
-#ifdef WINDOWS
-#include <windows.h>
-
-std::wstring File::charsToWchars(const std::string& in) {
-    int len = MultiByteToWideChar(CP_ACP, 0, in.c_str(), -1, nullptr, 0);
-    wchar_t* buf = new wchar_t[len+1];
-    std::wstring output;
-    memset(buf, 0, sizeof(wchar_t) * (len+1));
-    if (MultiByteToWideChar(CP_ACP, 0, in.c_str(), -1, buf, len)) {
-        output = buf;
-    } else {
-        std::cerr << "code convert error." << std::endl;
-    }
-    delete[] buf;
-
-    return output;
-}
-
-std::string File::wcharsToChars(const std::wstring& in) {
-    int len = WideCharToMultiByte(
-        CP_ACP, 0, in.c_str(), -1, nullptr, 0, nullptr, nullptr);
-    char* buf = new char[(len+1) * 2];
-    std::string output;
-    memset(buf, 0, sizeof(char) * (len+1) * 2);
-    if (WideCharToMultiByte(
-        CP_ACP, 0, in.c_str(), -1, buf, len, nullptr, nullptr)) {
-        output = buf;
-    } else {
-        std::cerr << "code convert error." << std::endl;
-    }
-    delete[] buf;
-
-    return output;
-}
-
-#endif
+}  // namespace patchtool

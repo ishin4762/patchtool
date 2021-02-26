@@ -1,28 +1,15 @@
 // Copyright (C) 2020 ISHIN.
-#ifndef SRC_PATCHFILE_FILELIST_H_
-#define SRC_PATCHFILE_FILELIST_H_
-
-#if __GNUG__ <= 7
-#include <experimental/filesystem>
-namespace fs = std::experimental::filesystem;
-#define FS_EXPERIMENTAL
-#else
-#include <filesystem>
-namespace fs = std::filesystem;
-#endif
+#ifndef SRC_LIB_FILELIST_H_
+#define SRC_LIB_FILELIST_H_
 
 #include <regex>
 #include <string>
 #include <list>
 #include <vector>
 
-#ifdef WINDOWS
-#define TO_PATH(x) File::charsToWchars((x))
-#define TO_STR(x) File::wcharsToChars((x))
-#else
-#define TO_PATH(x) (x)
-#define TO_STR(x) (x)
-#endif
+#include "FileAccess.h"
+
+namespace patchtool {
 
 struct File {
     std::string name;
@@ -48,7 +35,6 @@ struct File {
         isDirectory(false), isAdd(false), isRemove(false), isModify(false),
         filePos(0), fileSize(0), checkSum(0), numBlocks(0) {}
 
-    static bool isEqual(const File& file1, const File& file2);
 #ifdef WINDOWS
     static std::wstring charsToWchars(const std::string& in);
     static std::string wcharsToChars(const std::wstring& in);
@@ -65,12 +51,23 @@ class FileList {
     void sortAsc();
     void dump();
     void search(
+        FileAccess* fileAccess,
         const std::string& path,
         bool isHiddenSearch,
         bool isCheckIgnore,
         const std::regex& reIgnorePattern);
+    static FileList searchDiff(
+        FileAccess* fileAccess,
+        const std::string& oldDir,
+        const std::string& newDir,
+        bool isHiddenSearch,
+        const std::string& ignorePattern);
     static FileList calcDiff(
-        const FileList& oldList, const FileList& newList);
+        FileAccess* fileAccess,
+        const FileList& oldList,
+        const FileList& newList);
 };
 
-#endif  // SRC_PATCHFILE_FILELIST_H_
+}  // namespace patchtool
+
+#endif  // SRC_LIB_FILELIST_H_

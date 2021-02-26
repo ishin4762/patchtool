@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
-#include "patchfile/FileList.h"
+#include "lib/FileList.h"
+
+using namespace patchtool;
 
 TEST(FileListTest, FileList_sortAsc) {
     // Given

@@ -1,6 +1,9 @@
 // Copyright (C) 2020 ISHIN.
-#include <cstring>
 #include <iostream>
+
+extern "C" {
+  #include "external_lib/bzip2/bzlib.h"
+}
 
 #include "BZip2PatchFile.h"
 
@@ -37,15 +40,13 @@ static int bz2_read(
     return 0;
 }
 
+namespace patchtool {
+
 BZip2PatchFile::BZip2PatchFile() {
     writeStream.malloc = malloc;
     writeStream.free = free;
     writeStream.write = bz2_write;
     readStream.read = bz2_read;
-
-    // copy signature.
-    const char SIGNATURE[16] = "BZIP2 ver.1.01";
-    memcpy(signature, SIGNATURE, sizeof(signature));
 }
 
 bool BZip2PatchFile::openWriter(FILE* fp) {
@@ -95,3 +96,5 @@ bool BZip2PatchFile::closeReader() {
     BZ2_bzReadClose(&bz2err, bz2);
     return true;
 }
+
+}  // namespace patchtool

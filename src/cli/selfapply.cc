@@ -1,22 +1,22 @@
 // Copyright(C) 2020 ISHIN.
 extern "C" {
     #include <getopt.h>
+#if !WINDOWS
+    #include <unistd.h>
+    #include <libproc.h>
+#endif
 }
 #include <iostream>
 #include <cstring>
 #include <string>
 #include <vector>
-#include "patchfile/PatchFileFactory.h"
-#include "patchfile/ResourceAttacher.h"
 
 #ifdef WINDOWS
 #include <windows.h>
-#else
-extern "C" {
-    #include <unistd.h>
-    #include <libproc.h>
-}
 #endif
+
+#include "lib/include/patchtool.h"
+#include "common.h"
 
 /**
  *  show usage.
@@ -61,14 +61,12 @@ int main(int argc, char* argv[]) {
     }
 
     // get resource
+    patchtool::Patch patch;
     uint64_t offset;
-    if (!ResourceAttacher::getResource(fp, &offset)) {
+    if (!patch.getResource(fp, &offset)) {
         fclose(fp);
         return 1;
     }
-
-    // generate patch data.
-    PatchFile *patchFile = PatchFileFactory::fromFilePointer(fp, offset);
 
     std::string targetDir = argv[1];
     std::string lastChar = targetDir.substr(targetDir.size()-1, 1);
@@ -79,8 +77,7 @@ int main(int argc, char* argv[]) {
     fseeko(fp, offset, SEEK_SET);
 
     // apply patch file.
-    if (patchFile == nullptr
-        || !patchFile->decode(targetDir, fp, offset)) {
+    if (!patch.decode(targetDir, fp, offset, false)) {
         std::cerr << "cannot apply patch." << std::endl;
         fclose(fp);
         return 1;
