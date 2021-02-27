@@ -16,17 +16,12 @@ function generate_license() {
     # bzip2
     echo -e "\n---\n" >> $OUTFILE
     echo -e "bzip2\n" >> $OUTFILE
-    cat src/lib/bzip2/LICENSE >> $OUTFILE
+    cat src/lib/external_lib/bzip2/LICENSE >> $OUTFILE
 
     # bsdiff
     echo -e "\n---\n" >> $OUTFILE
     echo -e "bsdiff\n" >> $OUTFILE
-    cat src/lib/bsdiff/LICENSE >> $OUTFILE
-
-    # bsdiff
-    echo -e "\n---\n" >> $OUTFILE
-    echo -e "DownloadProject\n" >> $OUTFILE
-    cat cmake/DownloadProject/LICENSE >> $OUTFILE
+    cat src/lib/external_lib/bsdiff/LICENSE >> $OUTFILE
 }
 
 function refresh_dist() {
