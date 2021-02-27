@@ -460,15 +460,9 @@ bool PatchDecoder::generateFile(
 
         // generate tempfile from diff file's block.
         std::string tmpFileName = path + ".tmp";
-        if (!fileAccess->createTempFile(
-            tmpFileName, fp, file.diffBlockSizeList[i])) {
-            ret = false;
-            break;
-        }
-
-        FILE* tmpFp = fileAccess->openReadFile(tmpFileName);
+        FILE* tmpFp = fileAccess->createTempFile(
+            tmpFileName, fp, file.diffBlockSizeList[i]);
         if (tmpFp == nullptr) {
-            fileAccess->removeFile(tmpFileName);
             ret = false;
             break;
         }
