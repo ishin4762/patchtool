@@ -263,8 +263,8 @@ const std::string FileAccess::getRelativePath(
     std::string convertedBasePath = TO_STR(base);
 
     // calc relative path from rootDir
-    std::string relativePath =
-        filePath.replace(0, convertedBasePath.size(), "");
+    std::string relativePath = filePath;
+    relativePath.replace(0, convertedBasePath.size(), "");
 #if WINDOWS
     if (relativePath.at(0) == '\\') {
         relativePath.replace(0, 1, "");
@@ -393,8 +393,6 @@ std::list<std::string> FileAccess::searchDirectory(
 }
 
 #ifdef WINDOWS
-#include <windows.h>
-
 std::wstring FileAccess::charsToWchars(const std::string& in) {
     int len = MultiByteToWideChar(CP_ACP, 0, in.c_str(), -1, nullptr, 0);
     wchar_t* buf = new wchar_t[len+1];

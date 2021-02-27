@@ -16,7 +16,7 @@ extern "C" {
 #endif
 
 #include "lib/include/patchtool.h"
-#include "common.h"
+#include "./common.h"
 
 /**
  *  show usage.

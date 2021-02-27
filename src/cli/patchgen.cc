@@ -7,7 +7,7 @@ extern "C" {
 #include <vector>
 
 #include "lib/include/patchtool.h"
-#include "common.h"
+#include "./common.h"
 
 /**
  *  show usage.
