@@ -13,7 +13,7 @@
 
 ## リリース情報
 最新バージョン :
-* https://github.com/ishin4762/patchtool/releases/tag/v0.1.0
+* https://github.com/ishin4762/patchtool/releases/tag/v0.2.0
 
 過去のリリースはこちら :
 * https://github.com/ishin4762/patchtool/releases
