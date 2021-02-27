@@ -166,13 +166,13 @@ bool FileAccess::writeBlock(
     return ret;
 }
 
-bool FileAccess::createTempFile(
+FILE* FileAccess::createTempFile(
     const std::string& filePath, FILE* fp, uint64_t size) {
 
-    FILE *writeFp = openWriteFile(filePath.c_str());
+    FILE *writeFp = fopen(filePath.c_str(), "wb+");
     if (writeFp == nullptr) {
         std::cerr << "cannot create " << filePath << std::endl;
-        return false;
+        return nullptr;
     }
 
     bool ret = true;
@@ -200,14 +200,16 @@ bool FileAccess::createTempFile(
         }
     } while (readSize > 0);
 
-    closeFile(writeFp);
     delete[] buf;
 
     if (!ret) {
+        fclose(writeFp);
         removeFile(filePath);
+        return nullptr;
     }
 
-    return ret;
+    fseeko(writeFp, 0, SEEK_SET);
+    return writeFp;
 }
 
 uint32_t FileAccess::calcCheckSum(const std::string& filePath) {

@@ -38,7 +38,7 @@ class FileAccess {
         FILE* fp, void* buffer, uint64_t* size, uint64_t blockSize);
     bool writeBlock(
         FILE* fp, const void* buffer, uint64_t size);
-    bool createTempFile(
+    FILE* createTempFile(
         const std::string& filePath, FILE* fp, uint64_t size);
 
     uint32_t calcCheckSum(const std::string& filePath);
