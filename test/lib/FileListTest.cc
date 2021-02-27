@@ -1,3 +1,4 @@
+// Copyright(C) 2020 ISHIN.
 #include <gtest/gtest.h>
 #include "lib/FileList.h"
 
