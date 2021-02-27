@@ -11,6 +11,6 @@ if(WINDOWS)
 endif()
 
 include_directories(../src/)
-link_directories(../src/patchfile ../src/lib/bsdiff ../src/lib/bzip2)
+link_directories(../src/lib)
 
-add_subdirectory(patchfile)
+add_subdirectory(lib)

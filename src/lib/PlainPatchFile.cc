@@ -34,18 +34,13 @@ static int plain_read(
     return 0;
 }
 
-/**
- * constructor.
- */
+namespace patchtool {
+
 PlainPatchFile::PlainPatchFile() {
     writeStream.malloc = malloc;
     writeStream.free = free;
     writeStream.write = plain_write;
     readStream.read = plain_read;
-
-    // copy signature.
-    const char SIGNATURE[16] = "PLAIN ver.1.01";
-    memcpy(signature, SIGNATURE, sizeof(signature));
 }
 
 bool PlainPatchFile::openWriter(FILE* fp) {
@@ -67,3 +62,5 @@ bool PlainPatchFile::closeReader() {
     // do nothing.
     return true;
 }
+
+}  // namespace patchtool

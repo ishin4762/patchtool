@@ -2,13 +2,82 @@
 #include <cstring>
 #include <iostream>
 #include <sstream>
-#include "ResourceAttacher.h"
 
-bool ResourceAttacher::attach(
+#include "include/patchtool.h"
+#include "PatchFileFactory.h"
+#include "PatchEncoder.h"
+#include "PatchDecoder.h"
+#include "FileAccess.h"
+
+namespace patchtool {
+
+bool Patch::encode(
+    const std::string& oldDir,
+    const std::string& newDir,
+    const std::string& output,
+    const std::string& mode,
+    bool isHiddenSearch,
+    const std::string& ignorePattern,
+    uint32_t blockSize,
+    bool isVerbose) {
+
+    PatchFileFactory patchFileFactory;
+    FileAccess fileAccess;
+    std::unique_ptr<PatchFile> patchFile(
+        patchFileFactory.create(mode));
+    PatchEncoder patchEncoder(
+        patchFile.get(), &fileAccess, isVerbose, blockSize);
+
+    return patchEncoder.encode(
+        oldDir, newDir, output,
+        isHiddenSearch, ignorePattern);
+}
+
+bool Patch::decode(
+    const std::string& targetDir,
+    const std::string& input,
+    bool isVerbose) {
+
+    PatchFileFactory patchFileFactory;
+    FileAccess fileAccess;
+    std::unique_ptr<PatchFile> patchFile(
+        patchFileFactory.fromFile(input));
+    if (patchFile.get() == nullptr) {
+        return false;
+    }
+    FILE *fp = fileAccess.openReadFile(input);
+    PatchDecoder patchDecoder(
+        patchFile.get(), &fileAccess,
+        fp, 0, isVerbose);
+
+    bool ret = patchDecoder.decode(targetDir);
+    fileAccess.closeFile(fp);
+    return ret;
+}
+
+bool Patch::decode(
+    const std::string& targetDir,
+    FILE *fp,
+    const uint64_t offset,
+    bool isVerbose) {
+
+    PatchFileFactory patchFileFactory;
+    FileAccess fileAccess;
+    std::unique_ptr<PatchFile> patchFile(
+        patchFileFactory.fromFilePointer(fp, offset));
+    PatchDecoder patchDecoder(
+        patchFile.get(), &fileAccess,
+        fp, offset, isVerbose);
+
+    return patchDecoder.decode(targetDir);
+}
+
+bool Patch::attach(
     const std::string& target,
     const std::string& out,
     const std::string& resource) {
 
+    FileAccess fileAccess;
     const int PAYLOAD_ALIGNMENT = 8;
     FILE *inFp = nullptr;
     FILE *resFp = nullptr;
@@ -17,24 +86,24 @@ bool ResourceAttacher::attach(
 
     try {
         // open base
-        inFp = fopen(target.c_str(), "rb");
+        inFp = fileAccess.openReadFile(target);
         if (inFp == nullptr) {
             throw std::runtime_error("cannot open " + target);
         }
         // get in-size
         uint64_t inSize = 0;
-        fseeko(inFp, 0, SEEK_END);
-        inSize = ftello(inFp);
-        fseeko(inFp, 0, SEEK_SET);
+        fileAccess.seek(inFp, 0, SEEK_END);
+        inSize = fileAccess.tell(inFp);
+        fileAccess.seek(inFp, 0, SEEK_SET);
 
         // open resource
-        resFp = fopen(resource.c_str(), "rb");
+        resFp = fileAccess.openReadFile(resource);
         if (resFp == nullptr) {
             throw std::runtime_error("cannot open " + resource);
         }
 
         // open out
-        outFp = fopen(out.c_str(), "wb");
+        outFp = fileAccess.openWriteFile(out);
         if (outFp == nullptr) {
             throw std::runtime_error("cannot open " + out);
         }
@@ -42,7 +111,7 @@ bool ResourceAttacher::attach(
         // copy input into output
         const int BUFFER_SIZE = 8192;
         char buffer[BUFFER_SIZE];
-        fseeko(inFp, 0, SEEK_SET);
+        fileAccess.seek(inFp, 0, SEEK_SET);
         int readSize = 0;
         do {
             readSize = fread(buffer, sizeof(char), BUFFER_SIZE, inFp);
@@ -78,23 +147,19 @@ bool ResourceAttacher::attach(
     }
 
     // closing
-    if (inFp != nullptr) {
-        fclose(inFp);
-    }
-    if (resFp != nullptr) {
-        fclose(resFp);
-    }
-    if (outFp != nullptr) {
-        fclose(outFp);
-    }
+    fileAccess.closeFile(inFp);
+    fileAccess.closeFile(resFp);
+    fileAccess.closeFile(outFp);
+
     return ret;
 }
 
-bool ResourceAttacher::getResource(
+bool Patch::getResource(
     FILE* fp, uint64_t* offset) {
 
-    fseeko(fp, 0, SEEK_END);
-    uint64_t fileSize = ftello(fp);
+    FileAccess fileAccess;
+    fileAccess.seek(fp, 0, SEEK_END);
+    uint64_t fileSize = fileAccess.tell(fp);
 
     // validate footer data.
     if (fileSize < 24) {
@@ -102,7 +167,7 @@ bool ResourceAttacher::getResource(
         return false;
     }
 
-    fseeko(fp, fileSize - 24, SEEK_SET);
+    fileAccess.seek(fp, fileSize - 24, SEEK_SET);
     fread(offset, 8, 1, fp);
 
     char buf[16] = { 0 };
@@ -115,3 +180,5 @@ bool ResourceAttacher::getResource(
 
     return true;
 }
+
+}  // namespace patchtool
