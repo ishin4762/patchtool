@@ -166,13 +166,13 @@ bool FileAccess::writeBlock(
     return ret;
 }
 
-bool FileAccess::createTempFile(
+FILE* FileAccess::createTempFile(
     const std::string& filePath, FILE* fp, uint64_t size) {
 
-    FILE *writeFp = openWriteFile(filePath.c_str());
+    FILE *writeFp = fopen(filePath.c_str(), "wb+");
     if (writeFp == nullptr) {
         std::cerr << "cannot create " << filePath << std::endl;
-        return false;
+        return nullptr;
     }
 
     bool ret = true;
@@ -200,14 +200,16 @@ bool FileAccess::createTempFile(
         }
     } while (readSize > 0);
 
-    closeFile(writeFp);
     delete[] buf;
 
     if (!ret) {
+        fclose(writeFp);
         removeFile(filePath);
+        return nullptr;
     }
 
-    return ret;
+    fseeko(writeFp, 0, SEEK_SET);
+    return writeFp;
 }
 
 uint32_t FileAccess::calcCheckSum(const std::string& filePath) {
@@ -286,26 +288,54 @@ uint64_t FileAccess::getFileSize(const std::string& filePath) {
 }
 
 bool FileAccess::copyFile(
-    const std::string& destPath,
-    const std::string& srcPath) {
-    try {
-        fs::copy_file(TO_PATH(destPath), TO_PATH(srcPath));
-    } catch (fs::filesystem_error& ex) {
-        std::cerr << "cannot copy "
-            << destPath << " to " << srcPath << std::endl;
+    const std::string& srcPath,
+    const std::string& destPath) {
+    const int BUFFER_SIZE = 1024;
+    char buf[BUFFER_SIZE + 1];
+
+    FILE* fp1 = fopen(srcPath.c_str(), "rb");
+    if (fp1 == nullptr) {
+        std::cerr << "cannot open " << srcPath << std::endl;
+        return false;
+    }
+    FILE* fp2 = fopen(destPath.c_str(), "wb");
+    if (fp2 == nullptr) {
+        std::cerr << "cannot open " << destPath << std::endl;
+        fclose(fp1);
+        return false;
+    }
+
+    bool ret = true;
+    int readSize = 0;
+    do {
+        readSize = fread(buf, sizeof(char), BUFFER_SIZE, fp1);
+        if (readSize < 0) {
+            std::cerr << "error occurred in reading. val="
+                << readSize << std::endl;
+            ret = false;
+            break;
+        }
+        fwrite(buf, sizeof(char), readSize, fp2);
+    } while (readSize > 0);
+
+    fclose(fp1);
+    fclose(fp2);
+
+    if (!ret) {
+        removeFile(destPath);
         return false;
     }
     return true;
 }
 
 bool FileAccess::renameFile(
-    const std::string& destPath,
-    const std::string& srcPath) {
+    const std::string& srcPath,
+    const std::string& destPath) {
     try {
-        fs::rename(TO_PATH(destPath), TO_PATH(srcPath));
+        fs::rename(TO_PATH(srcPath), TO_PATH(destPath));
     } catch (fs::filesystem_error& ex) {
         std::cerr << "cannot rename "
-            << destPath << " to " << srcPath << std::endl;
+            << srcPath << " to " << destPath << std::endl;
         return false;
     }
     return true;

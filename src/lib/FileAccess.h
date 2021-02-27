@@ -38,7 +38,7 @@ class FileAccess {
         FILE* fp, void* buffer, uint64_t* size, uint64_t blockSize);
     bool writeBlock(
         FILE* fp, const void* buffer, uint64_t size);
-    bool createTempFile(
+    FILE* createTempFile(
         const std::string& filePath, FILE* fp, uint64_t size);
 
     uint32_t calcCheckSum(const std::string& filePath);
@@ -51,11 +51,11 @@ class FileAccess {
     uint64_t getFileSize(const std::string& filePath);
     bool createDirectory(const std::string& filePath);
     bool copyFile(
-        const std::string& destPath,
-        const std::string& srcPath);
+        const std::string& srcPath,
+        const std::string& destPath);
     bool renameFile(
-        const std::string& destPath,
-        const std::string& srcPath);
+        const std::string& srcPath,
+        const std::string& destPath);
     bool removeFile(const std::string& filePath);
     bool isFileEqual(
         const std::string& file1, const std::string& file2);

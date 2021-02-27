@@ -216,9 +216,9 @@ bool PatchDecoder::readFileInfo(File* file, int version) {
         file->oldBlockSizeList.resize(1);
         file->newBlockSizeList.resize(1);
         file->diffBlockSizeList.resize(1);
-        file->oldBlockSizeList[0] = file->fileSize;
+        file->oldBlockSizeList[0] = 0;
         file->newBlockSizeList[0] = file->fileNewSize;
-        file->diffBlockSizeList[0] = file->fileNewSize;
+        file->diffBlockSizeList[0] = file->fileSize;
     }
 
     if (isVerbose) {
@@ -460,15 +460,9 @@ bool PatchDecoder::generateFile(
 
         // generate tempfile from diff file's block.
         std::string tmpFileName = path + ".tmp";
-        if (!fileAccess->createTempFile(
-            tmpFileName, fp, file.diffBlockSizeList[i])) {
-            ret = false;
-            break;
-        }
-
-        FILE* tmpFp = fileAccess->openReadFile(tmpFileName);
+        FILE* tmpFp = fileAccess->createTempFile(
+            tmpFileName, fp, file.diffBlockSizeList[i]);
         if (tmpFp == nullptr) {
-            fileAccess->removeFile(tmpFileName);
             ret = false;
             break;
         }
@@ -502,8 +496,11 @@ bool PatchDecoder::updateFile(
     const std::string& path, const File& file) {
     // allocate file buffer.
     uint8_t* bufNew = new uint8_t[file.newBlockSizeList[0] + 1];
-    uint8_t* bufOld = new uint8_t[file.oldBlockSizeList[0] + 1];
-    memset(bufNew, 0, file.newBlockSizeList[0] + 1);
+    uint64_t oldFileSize = fileAccess->getFileSize(path);
+    uint64_t bufOldSize = file.oldBlockSizeList[0] == 0
+        ? oldFileSize : file.oldBlockSizeList[0];
+    uint8_t* bufOld = new uint8_t[bufOldSize + 1];
+    memset(bufNew, 0, bufOldSize + 1);
 
     // seek to data begin pos.
     fileAccess->seek(fp, file.filePos + offset, SEEK_SET);
@@ -516,23 +513,19 @@ bool PatchDecoder::updateFile(
         uint64_t oldFileSize;
 
         // read old file's block.
+        uint64_t oldBlockSize = file.oldBlockSizeList[0] == 0
+            ? oldFileSize : file.oldBlockSizeList[i];
         if (!fileAccess->readBlock(
-            oldFp, bufOld, &oldFileSize, file.oldBlockSizeList[i])) {
+            oldFp, bufOld, &oldFileSize, oldBlockSize)) {
             ret = false;
             break;
         }
 
         // generate tempfile from diff file's block.
         std::string tmpFileName = path + ".tmp";
-        if (!fileAccess->createTempFile(
-            tmpFileName, fp, file.diffBlockSizeList[i])) {
-            ret = false;
-            break;
-        }
-
-        FILE* tmpFp = fileAccess->openReadFile(tmpFileName);
+        FILE* tmpFp = fileAccess->createTempFile(
+            tmpFileName, fp, file.diffBlockSizeList[i]);
         if (tmpFp == nullptr) {
-            fileAccess->removeFile(tmpFileName);
             ret = false;
             break;
         }
