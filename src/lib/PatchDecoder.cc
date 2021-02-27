@@ -344,7 +344,6 @@ bool PatchDecoder::applyFile(
                 std::cerr << "cannot modify " << file.name << std::endl;
                 return false;
             }
-
             // apply patch for copied file.
             if (!updateFile(afterPath, file)) {
                 std::cerr << "cannot modify " << file.name << std::endl;
@@ -496,11 +495,11 @@ bool PatchDecoder::updateFile(
     const std::string& path, const File& file) {
     // allocate file buffer.
     uint8_t* bufNew = new uint8_t[file.newBlockSizeList[0] + 1];
-    uint64_t oldFileSize = fileAccess->getFileSize(path);
+    uint64_t oldFileSizeFull = fileAccess->getFileSize(path);
     uint64_t bufOldSize = file.oldBlockSizeList[0] == 0
-        ? oldFileSize : file.oldBlockSizeList[0];
+        ? oldFileSizeFull : file.oldBlockSizeList[0];
     uint8_t* bufOld = new uint8_t[bufOldSize + 1];
-    memset(bufNew, 0, bufOldSize + 1);
+    memset(bufNew, 0, file.newBlockSizeList[0] + 1);
 
     // seek to data begin pos.
     fileAccess->seek(fp, file.filePos + offset, SEEK_SET);
@@ -514,7 +513,7 @@ bool PatchDecoder::updateFile(
 
         // read old file's block.
         uint64_t oldBlockSize = file.oldBlockSizeList[0] == 0
-            ? oldFileSize : file.oldBlockSizeList[i];
+            ? oldFileSizeFull : file.oldBlockSizeList[i];
         if (!fileAccess->readBlock(
             oldFp, bufOld, &oldFileSize, oldBlockSize)) {
             ret = false;
@@ -555,7 +554,6 @@ bool PatchDecoder::updateFile(
 
     fileAccess->removeFile(path);
     fileAccess->renameFile(path + ".mod", path);
-
     return ret;
 }
 
