@@ -58,13 +58,6 @@ CMD> diff_patch patch_test
 # patch_testの中身がv1.00からv1.01に変わります
 ```
 
-## Windows版自己解凍形式のパッチの署名について
-そのまま作成したデータは署名がありません。
-配布する場合は、下記の利用のご検討をしてみてください。
-
-* [SignTool.exe](https://docs.microsoft.com/ja-jp/dotnet/framework/tools/signtool-exe)
-* [osslsigncode](https://github.com/mtrojnar/osslsigncode)
-
 ## ビルドの方法
 ```
 $ mkdir build && cd build
